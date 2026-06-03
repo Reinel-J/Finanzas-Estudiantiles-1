@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="UTF-8"> <!-- Para que los caracteres especiales se muestren bien -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- Vista responsiva -->
+  <title>Ingresos — FinanzasApp</title>
+  <link rel="stylesheet" href="css/estilos.css">
+</head>
+
+<body>
+
+  <!-- Barra de navegación lateral -->
+  <nav class="navbar">
+    <div class="navbar-brand">
+      <div class="brand-logo">
+        <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
+      </div>
+      <span class="brand-name">FinanzasApp</span>
+    </div>
+    
+    <div class="navbar-section-label">Menú Principal</div>
+    
+    <div class="navbar-nav">
+      <ul>
+        <li><a href="menu.html"><svg class="nav-icon" viewBox="0 0 24 24"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg> Inicio</a></li>
+        <li><a href="ingresos.html" class="active"><svg class="nav-icon" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v-2h-2v-2h-2v2H9v2h2v2h2zm0-8h-2V7h2v2z"/></svg> Ingresos</a></li>
+        <li><a href="gastos.html"><svg class="nav-icon" viewBox="0 0 24 24"><path d="M15 4H9v2H5v14h14V6h-4V4zM9 4h6v2H9V4z"/></svg> Gastos</a></li>
+        <li><a href="metas.html"><svg class="nav-icon" viewBox="0 0 24 24"><path d="M12 2L2 22h20L12 2zm0 4.5l6.5 13.5h-13L12 6.5z"/></svg> Metas</a></li>
+        <li><a href="reportes.html"><svg class="nav-icon" viewBox="0 0 24 24"><path d="M3 3v18h18V3H3zm16 16H5V5h14v14z"/></svg> Reportes</a></li>
+        <li><a href="moneda.html"><svg class="nav-icon" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 15h-2v-6H7v-2h2V7h2v2h2v2h-2v6z"/></svg> Moneda</a></li>
+      </ul>
+    </div>
+    <button class="btn-cerrar" onclick="cerrarSesion()">
+      <svg class="nav-icon" viewBox="0 0 24 24"><path fill="currentColor" d="M10.09 15.59L11.5 17l5-5-5-5-1.41 1.41L12.67 11H3v2h9.67l-2.58 2.59zM19 3H5a2 2 0 0 0-2 2v4h2V5h14v14H5v-4H3v4a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2z"/></svg>
+      Cerrar sesión
+    </button>
+  </nav>
+
+  <div class="contenido">
+
+    <p class="page-title">Ingresos</p>
+    <p class="page-subtitle">Registra y gestiona tus fuentes de ingreso</p>
+
+    <p class="seccion-titulo">Agregar ingreso</p>
+
+    <!-- Formulario para agregar un nuevo ingreso -->
+    <div class="form-agregar">
+      <div class="form-grupo">
+        <label>Descripción</label>
+        <input id="descripcion" type="text" placeholder="Ej: Salario, Freelance...">
+        <!-- El backend espera este campo como "descripcion" -->
+      </div>
+      <div class="form-grupo">
+        <label>Categoría</label>
+        <select id="categoria"> <!-- Lista de categorías predefinidas -->
+          <option value="Salario">Salario</option>
+          <option value="Freelance">Freelance</option>
+          <option value="Negocio">Negocio</option>
+          <option value="Inversión">Inversión</option>
+          <option value="Regalo">Regalo</option>
+          <option value="Otro">Otro</option>
+        </select>
+      </div>
+      <div class="form-grupo">
+        <label>Valor en pesos colombianos ($)</label>
+        <input id="monto" type="text" inputmode="numeric" placeholder="Ej: 500.000" data-cop="true">
+        <!-- min="0" evita que se ingresen valores negativos -->
+      </div>
+      <div class="form-grupo">
+        <label>Fecha</label>
+        <input id="fecha" type="date"> <!-- El valor llega en formato YYYY-MM-DD -->
+      </div>
+      <button class="btn-agregar" onclick="agregarIngresoNuevo()">+ Agregar</button>
+    </div>
+
+    <p class="seccion-titulo">Historial de ingresos</p>
+    <div class="lista-movimientos" id="listaIngresos"></div> <!-- Se llena dinámicamente -->
+
+  </div>
+
+  <script src="js/api.js"></script>
+  <script src="js/cop-input.js"></script>
+
+  <script>
+
+    verificarSesion(); // Redirige al login si no hay sesión activa
+
+    function formatCOP(n) { // Convierte número a formato pesos colombianos
+      return "$" + Number(n).toLocaleString("es-CO");
+    }
+
+    async function cargarIngresos() {
+      let usuarioId = getUsuarioId(); // Lee el id del usuario de sessionStorage
+      let lista = document.getElementById("listaIngresos");
+
+      try {
+        let ingresos = await getIngresos(usuarioId); // GET /api/ingresos/{usuarioId}
+
+        if (ingresos.length === 0) { // Si el usuario no tiene ingresos todavía
+          lista.innerHTML = '<p class="sin-datos">No hay ingresos registrados aún.</p>';
+          return;
+        }
+
+        // Construye el HTML de cada ingreso y lo muestra en la lista
+        lista.innerHTML = ingresos.map(item => `
+          <div class="movimiento-item">
+            <div class="mov-info">
+              <div class="mov-icono ingreso"></div> <!-- Ícono verde de ingreso -->
+              <div>
+                <div class="mov-nombre">${item.descripcion}</div> <!-- Descripción del ingreso -->
+                <div class="mov-categoria">${item.categoria || ''}</div> <!-- Categoría o vacío -->
+              </div>
+            </div>
+            <div class="mov-derecha">
+              <div class="mov-valores">
+                <div class="mov-valor ingreso">+${formatCOP(item.monto)}</div> <!-- Monto en verde -->
+                <div class="mov-fecha">${item.fecha}</div>
+              </div>
+              <button class="btn-eliminar" onclick="borrarIngreso(${item.id})" title="Eliminar"></button>
+              <!-- Pasa el id real de la BD para poder eliminar el registro correcto -->
+            </div>
+          </div>
+        `).join("");
+
+      } catch (error) {
+        lista.innerHTML = '<p class="sin-datos">Error al cargar ingresos.</p>'; // Mensaje de error visible
+        console.error(error); // Detalle del error en consola para depurar
+      }
+    }
+
+    async function agregarIngresoNuevo() {
+      let descripcion = document.getElementById("descripcion").value.trim(); // trim() quita espacios al inicio y fin
+      let categoria = document.getElementById("categoria").value;
+      let monto = document.getElementById("monto").value;
+      let fecha = document.getElementById("fecha").value;
+
+      if (!descripcion || !monto || !fecha) { // Valida que ningún campo esté vacío
+        alert("Completa todos los campos.");
+        return;
+      }
+
+      let montoNum = parseCOP(monto);
+      if (isNaN(montoNum) || montoNum <= 0) {
+        alert("Ingresa un valor válido en pesos colombianos.");
+        return;
+      }
+
+      try {
+        await agregarIngreso(getUsuarioId(), { // POST /api/ingresos/{usuarioId}
+          monto: montoNum, // parseCOP convierte "1.500.000" → 1500000
+          descripcion: descripcion,
+          fecha: fecha,
+          categoria: categoria
+        });
+
+        document.getElementById("descripcion").value = "";
+        document.getElementById("monto").value = "";
+        document.getElementById("fecha").valueAsDate = new Date();
+
+        cargarIngresos(); // Recarga la lista para mostrar el nuevo ingreso
+
+      } catch (error) {
+        alert("Error: " + error.message);
+      }
+    }
+
+    async function borrarIngreso(id) { // Recibe el id del ingreso a eliminar
+      try {
+        await eliminarIngreso(id); // DELETE /api/ingresos/{id}
+        cargarIngresos(); // Recarga la lista después de eliminar
+      } catch (error) {
+        alert("Error: " + error.message);
+      }
+    }
+
+    document.getElementById("fecha").valueAsDate = new Date();
+    initAllCOPInputs(); // Inicializa todos los inputs con data-cop="true"
+    cargarIngresos();
+
+  </script>
+
+</body>
+
+</html>

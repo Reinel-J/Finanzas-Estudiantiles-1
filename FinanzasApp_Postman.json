@@ -1,0 +1,409 @@
+{
+	"info": {
+		"_postman_id": "c1f1f1a1-fbfb-426d-a169-d7b1a1c9df4a",
+		"name": "FinanzasApp",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Usuarios",
+			"item": [
+				{
+					"name": "1. Registrar Usuario",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"nombre\": \"juanperez\",\n  \"apellido\": \"Perez\",\n  \"contrasena\": \"miClave123\",\n  \"tipoDoc\": \"CC\",\n  \"nDoc\": \"1001234567\",\n  \"universidad\": \"Universidad del Norte\"\n}"
+						},
+						"url": {
+							"raw": "http://localhost:8081/api/usuarios/registro",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8081",
+							"path": ["api", "usuarios", "registro"]
+						}
+					}
+				},
+				{
+					"name": "2. Iniciar Sesión",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"nombre\": \"juanperez\",\n  \"contrasena\": \"miClave123\"\n}"
+						},
+						"url": {
+							"raw": "http://localhost:8081/api/usuarios/login",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8081",
+							"path": ["api", "usuarios", "login"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Semestre",
+			"item": [
+				{
+					"name": "10. Configurar Semestre",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"semestreActual\": 1,\n  \"fechaInicioSemestre\": \"2026-01-15\",\n  \"fechaFinSemestre\": \"2026-06-30\",\n  \"porcentajeAhorro\": 10\n}"
+						},
+						"url": {
+							"raw": "http://localhost:8081/api/semestre/1",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8081",
+							"path": ["api", "semestre", "1"]
+						}
+					}
+				},
+				{
+					"name": "11. Obtener Config Semestre",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8081/api/semestre/1",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8081",
+							"path": ["api", "semestre", "1"]
+						}
+					}
+				},
+				{
+					"name": "12. Agregar Ahorro Manual",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"monto\": 50000\n}"
+						},
+						"url": {
+							"raw": "http://localhost:8081/api/semestre/1/ahorrar",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8081",
+							"path": ["api", "semestre", "1", "ahorrar"]
+						}
+					}
+				},
+				{
+					"name": "13. Retirar Ahorro",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"monto\": 20000\n}"
+						},
+						"url": {
+							"raw": "http://localhost:8081/api/semestre/1/retirar-ahorro",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8081",
+							"path": ["api", "semestre", "1", "retirar-ahorro"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Ingresos",
+			"item": [
+				{
+					"name": "14. Agregar Ingreso",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"monto\": 500000.0,\n  \"descripcion\": \"Mesada\",\n  \"fecha\": \"2026-04-09\",\n  \"categoria\": \"Regalo\",\n  \"semestre\": 1\n}"
+						},
+						"url": {
+							"raw": "http://localhost:8081/api/ingresos/1",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8081",
+							"path": ["api", "ingresos", "1"]
+						}
+					}
+				},
+				{
+					"name": "15. Listar Ingresos",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8081/api/ingresos/1",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8081",
+							"path": ["api", "ingresos", "1"]
+						}
+					}
+				},
+				{
+					"name": "16. Ingresos por Semestre",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8081/api/ingresos/1/semestre/1",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8081",
+							"path": ["api", "ingresos", "1", "semestre", "1"]
+						}
+					}
+				},
+				{
+					"name": "17. Total de Ingresos",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8081/api/ingresos/1/total",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8081",
+							"path": ["api", "ingresos", "1", "total"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Gastos",
+			"item": [
+				{
+					"name": "18. Agregar Gasto",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"monto\": 35000.0,\n  \"descripcion\": \"Almuerzo en la U\",\n  \"fecha\": \"2026-04-09\",\n  \"categoria\": \"Alimentación\",\n  \"semestre\": 1\n}"
+						},
+						"url": {
+							"raw": "http://localhost:8081/api/gastos/1",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8081",
+							"path": ["api", "gastos", "1"]
+						}
+					}
+				},
+				{
+					"name": "19. Listar Gastos",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8081/api/gastos/1",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8081",
+							"path": ["api", "gastos", "1"]
+						}
+					}
+				},
+				{
+					"name": "20. Gastos por Semestre",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8081/api/gastos/1/semestre/1",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8081",
+							"path": ["api", "gastos", "1", "semestre", "1"]
+						}
+					}
+				},
+				{
+					"name": "21. Total de Gastos",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8081/api/gastos/1/total",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8081",
+							"path": ["api", "gastos", "1", "total"]
+						}
+					}
+				},
+				{
+					"name": "22. Resumen Semanal",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8081/api/gastos/1/resumen-semanal",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8081",
+							"path": ["api", "gastos", "1", "resumen-semanal"]
+						}
+					}
+				},
+				{
+					"name": "23. Gastos Semanales por Categoría",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8081/api/gastos/1/semanal/categoria",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8081",
+							"path": ["api", "gastos", "1", "semanal", "categoria"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Metas de Ahorro",
+			"item": [
+				{
+					"name": "24. Crear Meta",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"nombre\": \"Laptop nueva\",\n  \"montoObjetivo\": 2000000,\n  \"fechaLimite\": \"2026-12-31\",\n  \"semestre\": 1\n}"
+						},
+						"url": {
+							"raw": "http://localhost:8081/api/metas/1",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8081",
+							"path": ["api", "metas", "1"]
+						}
+					}
+				},
+				{
+					"name": "25. Listar Metas",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8081/api/metas/1",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8081",
+							"path": ["api", "metas", "1"]
+						}
+					}
+				},
+				{
+					"name": "26. Abonar a Meta",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"monto\": 100000\n}"
+						},
+						"url": {
+							"raw": "http://localhost:8081/api/metas/1/abonar",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8081",
+							"path": ["api", "metas", "1", "abonar"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Moneda",
+			"item": [
+				{
+					"name": "27. Convertir Moneda",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"monto\": 100,\n  \"monedaOrigen\": \"USD\",\n  \"monedaDestino\": \"COP\"\n}"
+						},
+						"url": {
+							"raw": "http://localhost:8081/api/moneda/convertir",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8081",
+							"path": ["api", "moneda", "convertir"]
+						}
+					}
+				}
+			]
+		}
+	]
+}

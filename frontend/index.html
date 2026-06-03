@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="UTF-8"> <!-- Para que tildes y ñ no salgan como símbolos raros -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- Para que se vea bien -->
+  <title>Finanzas Estudiantiles - Login</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="css/estilos.css">
+</head>
+
+<body class="login-body">
+
+  <div class="login-card">
+
+    <div class="logo-area">
+      <h2>FinanzasApp</h2>
+      <p>Controla tus finanzas personales</p>
+    </div>
+
+
+    <form onsubmit="login(event)">
+
+      <div>
+        <label>Usuario</label>
+        <input id="nombre" type="text" placeholder="Tu nombre de usuario" required>
+        <!-- id="nombre" para leerlo desde JS, required obliga a llenarlo -->
+      </div>
+
+      <div>
+        <label>Contraseña</label>
+        <input id="contrasena" type="password" placeholder="Tu contraseña" required>
+      </div>
+
+      <button class="boton-login" type="submit">Ingresar</button> <!-- Botón que dispara el onsubmit del form -->
+
+    </form>
+
+    <a href="registro.html" class="boton-registro-link">¿No tienes cuenta? Crear una</a>
+
+
+  </div>
+
+  <script src="js/api.js"></script> <!-- Carga las funciones de conexión con el backend -->
+
+  <script>
+
+    async function login(event) { // async porque usa await para esperar la respuesta del servidor
+      event.preventDefault(); // Evita que el form recargue la página al enviarse
+
+      let nombre = document.getElementById("nombre").value; // Toma lo que escribió el usuario
+      let contrasena = document.getElementById("contrasena").value; // Toma la contraseña
+
+      try { // Intenta conectarse al backend
+        let usuario = await loginUsuario(nombre, contrasena);
+        // loginUsuario() está en api.js, hace POST /api/usuarios/login y devuelve el objeto usuario
+
+        guardarSesion(usuario); // Guarda el id y nombre en sessionStorage para usarlos en otras páginas
+
+        // Verificar si el usuario ya tiene semestre configurado
+        // Si tiene fecha de inicio de semestre, ya lo configuró antes
+        if (usuario.fechaInicioSemestre) {
+          // Ya configuró su semestre → ir directo al menú
+          window.location.href = "menu.html";
+        } else {
+          // No tiene semestre configurado → ir a configurarlo
+          sessionStorage.setItem("primeraVez", "true");
+          window.location.href = "semestre.html";
+        }
+
+      } catch (error) { // Si el backend responde con error (credenciales incorrectas)
+        alert("Usuario o contraseña incorrectos"); // Avisa al usuario
+      }
+    }
+
+  </script>
+
+</body>
+
+</html>

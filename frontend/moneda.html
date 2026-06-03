@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Conversión de Moneda — FinanzasApp</title>
+  <link rel="stylesheet" href="css/estilos.css">
+</head>
+
+<body>
+
+  <nav class="navbar">
+    <div class="navbar-brand">
+      <div class="brand-logo">
+        <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
+      </div>
+      <span class="brand-name">FinanzasApp</span>
+    </div>
+    
+    <div class="navbar-section-label">Menú Principal</div>
+    
+    <div class="navbar-nav">
+      <ul>
+        <li><a href="menu.html"><svg class="nav-icon" viewBox="0 0 24 24"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg> Inicio</a></li>
+        <li><a href="ingresos.html"><svg class="nav-icon" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v-2h-2v-2h-2v2H9v2h2v2h2zm0-8h-2V7h2v2z"/></svg> Ingresos</a></li>
+        <li><a href="gastos.html"><svg class="nav-icon" viewBox="0 0 24 24"><path d="M15 4H9v2H5v14h14V6h-4V4zM9 4h6v2H9V4z"/></svg> Gastos</a></li>
+        <li><a href="metas.html"><svg class="nav-icon" viewBox="0 0 24 24"><path d="M12 2L2 22h20L12 2zm0 4.5l6.5 13.5h-13L12 6.5z"/></svg> Metas</a></li>
+        <li><a href="reportes.html"><svg class="nav-icon" viewBox="0 0 24 24"><path d="M3 3v18h18V3H3zm16 16H5V5h14v14z"/></svg> Reportes</a></li>
+        <li><a href="moneda.html" class="active"><svg class="nav-icon" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 15h-2v-6H7v-2h2V7h2v2h2v2h-2v6z"/></svg> Moneda</a></li>
+      </ul>
+    </div>
+    <button class="btn-cerrar" onclick="cerrarSesion()">
+      <svg class="nav-icon" viewBox="0 0 24 24"><path fill="currentColor" d="M10.09 15.59L11.5 17l5-5-5-5-1.41 1.41L12.67 11H3v2h9.67l-2.58 2.59zM19 3H5a2 2 0 0 0-2 2v4h2V5h14v14H5v-4H3v4a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2z"/></svg>
+      Cerrar sesión
+    </button>
+  </nav>
+
+  <div class="contenido">
+
+    <p class="page-title">Conversión de Moneda</p>
+    <p class="page-subtitle">Convierte montos entre diferentes monedas</p>
+
+    <div class="form-container">
+      <form id="formConvertir">
+        <div class="form-group">
+          <label for="monto">Monto</label>
+          <input type="number" id="monto" placeholder="Ej: 100" min="0.01" step="0.01" required>
+        </div>
+
+        <div class="form-group">
+          <label for="monedaOrigen">Moneda de Origen</label>
+          <select id="monedaOrigen" required>
+            <option value="USD">USD — Dólar Estadounidense</option>
+            <option value="EUR">EUR — Euro</option>
+            <option value="GBP">GBP — Libra Esterlina</option>
+            <option value="JPY">JPY — Yen Japonés</option>
+            <option value="COP" selected>COP — Peso Colombiano</option>
+            <option value="MXN">MXN — Peso Mexicano</option>
+            <option value="ARS">ARS — Peso Argentino</option>
+            <option value="CLP">CLP — Peso Chileno</option>
+            <option value="CAD">CAD — Dólar Canadiense</option>
+            <option value="CHF">CHF — Franco Suizo</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="monedaDestino">Moneda de Destino</label>
+          <select id="monedaDestino" required>
+            <option value="USD" selected>USD — Dólar Estadounidense</option>
+            <option value="EUR">EUR — Euro</option>
+            <option value="GBP">GBP — Libra Esterlina</option>
+            <option value="JPY">JPY — Yen Japonés</option>
+            <option value="COP">COP — Peso Colombiano</option>
+            <option value="MXN">MXN — Peso Mexicano</option>
+            <option value="ARS">ARS — Peso Argentino</option>
+            <option value="CLP">CLP — Peso Chileno</option>
+            <option value="CAD">CAD — Dólar Canadiense</option>
+            <option value="CHF">CHF — Franco Suizo</option>
+          </select>
+        </div>
+
+        <button type="submit" class="btn btn-primario">Convertir</button>
+      </form>
+
+      <div id="resultado" class="resultado-conversion" style="display: none;"></div>
+      <div id="error" class="error-msg" style="display: none;"></div>
+    </div>
+
+  </div>
+
+  <script src="js/api.js"></script>
+  <script>
+    verificarSesion();
+
+    function formatCOP(n) {
+      return "$" + Number(n).toLocaleString("es-CO");
+    }
+
+    function formatDecimal(n) {
+      return Number(n).toLocaleString("es-CO", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
+    document.getElementById("formConvertir").addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const monto = parseFloat(document.getElementById("monto").value);
+      const monedaOrigen = document.getElementById("monedaOrigen").value;
+      const monedaDestino = document.getElementById("monedaDestino").value;
+
+      const resultadoDiv = document.getElementById("resultado");
+      const errorDiv = document.getElementById("error");
+
+      resultadoDiv.style.display = "none";
+      errorDiv.style.display = "none";
+
+      try {
+        const resultado = await convertirMoneda(monto, monedaOrigen, monedaDestino);
+
+        resultadoDiv.innerHTML = `
+          <h3>Resultado de la Conversión</h3>
+          <p class="conversion-original">${formatCOP(monto)} ${monedaOrigen}</p>
+          <p class="conversion-flecha">=</p>
+          <p class="conversion-resultado">${formatCOP(resultado.montoConvertido)} ${resultado.monedaDestino}</p>
+          <p class="conversion-tasa">Tasa: 1 ${monedaOrigen} = ${formatDecimal(resultado.tasa)} ${monedaDestino}</p>
+        `;
+        resultadoDiv.style.display = "block";
+
+      } catch (error) {
+        errorDiv.textContent = error.message;
+        errorDiv.style.display = "block";
+      }
+    });
+  </script>
+
+</body>
+
+</html>

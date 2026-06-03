@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Metas de Ahorro — FinanzasApp</title>
+  <link rel="stylesheet" href="css/estilos.css">
+  <meta charset="UTF-8">
+</head>
+<body>
+
+  <nav class="navbar">
+    <div class="navbar-brand">
+      <div class="brand-logo">
+        <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
+      </div>
+      <span class="brand-name">FinanzasApp</span>
+    </div>
+    
+    <div class="navbar-section-label">Menú Principal</div>
+    
+    <div class="navbar-nav">
+      <ul>
+        <li><a href="menu.html"><svg class="nav-icon" viewBox="0 0 24 24"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg> Inicio</a></li>
+        <li><a href="ingresos.html"><svg class="nav-icon" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v-2h-2v-2h-2v2H9v2h2v2h2zm0-8h-2V7h2v2z"/></svg> Ingresos</a></li>
+        <li><a href="gastos.html"><svg class="nav-icon" viewBox="0 0 24 24"><path d="M15 4H9v2H5v14h14V6h-4V4zM9 4h6v2H9V4z"/></svg> Gastos</a></li>
+        <li><a href="metas.html" class="active"><svg class="nav-icon" viewBox="0 0 24 24"><path d="M12 2L2 22h20L12 2zm0 4.5l6.5 13.5h-13L12 6.5z"/></svg> Metas</a></li>
+        <li><a href="reportes.html"><svg class="nav-icon" viewBox="0 0 24 24"><path d="M3 3v18h18V3H3zm16 16H5V5h14v14z"/></svg> Reportes</a></li>
+        <li><a href="moneda.html"><svg class="nav-icon" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 15h-2v-6H7v-2h2V7h2v2h2v2h-2v6z"/></svg> Moneda</a></li>
+      </ul>
+    </div>
+    <button class="btn-cerrar" onclick="cerrarSesion()">
+      <svg class="nav-icon" viewBox="0 0 24 24"><path fill="currentColor" d="M10.09 15.59L11.5 17l5-5-5-5-1.41 1.41L12.67 11H3v2h9.67l-2.58 2.59zM19 3H5a2 2 0 0 0-2 2v4h2V5h14v14H5v-4H3v4a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2z"/></svg>
+      Cerrar sesión
+    </button>
+  </nav>
+
+  <div class="contenido">
+
+    <p class="page-title">Metas de Ahorro</p>
+    <p class="page-subtitle">Establece objetivos y haz seguimiento de tu progreso</p>
+
+    <!-- Contenedor para Alertas Inteligentes (Notificaciones) -->
+    <div id="notificacionesContainer" style="margin-bottom: 20px;"></div>
+
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+      <p class="seccion-titulo" style="margin: 0;">Crear nueva meta</p>
+      <button class="btn-historial" onclick="abrirPanelNotificaciones()">🔔 Ver Alertas</button>
+    </div>
+
+    <div class="form-agregar">
+      <div class="form-grupo">
+        <label>¿Qué quieres lograr?</label>
+        <input id="nombreMeta" type="text" placeholder="Ej: Laptop nueva, Viaje...">
+      </div>
+      <div class="form-grupo">
+        <label>Monto Objetivo en COP ($)</label>
+        <input id="montoObjetivo" type="text" inputmode="numeric" placeholder="Ej: 2.000.000" data-cop="true">
+      </div>
+      <div class="form-grupo">
+        <label>Fecha Límite</label>
+        <input id="fechaLimite" type="date">
+      </div>
+      <button class="btn-agregar" onclick="agregarMetaNueva()">+ Crear Meta</button>
+    </div>
+
+    <p class="seccion-titulo">Mis Metas Activas</p>
+    <div class="lista-movimientos" id="listaMetas"></div>
+
+  </div>
+
+  <!-- MODAL BÚSQUEDA MERCADO LIBRE -->
+  <div class="modal-overlay" id="modalML">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Vincular producto de Mercado Libre</h3>
+        <button class="modal-close" onclick="cerrarModalML()">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="ml-search-bar">
+          <input type="text" id="mlSearchInput" placeholder="Ej: iPhone 15, Laptop ASUS..." onkeypress="if(event.key === 'Enter') buscarML()">
+          <button class="btn-primario" onclick="buscarML()">Buscar</button>
+        </div>
+        <div id="mlLoader" class="hidden" style="text-align:center; padding: 20px; color: var(--text-muted);">Buscando productos...</div>
+        <div class="ml-results" id="mlResults"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL HISTORIAL PRECIOS -->
+  <div class="modal-overlay" id="modalHistorial">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Historial de Precios</h3>
+        <button class="modal-close" onclick="cerrarModalHistorial()">×</button>
+      </div>
+      <div class="modal-body">
+        <div id="historialContent"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PANEL LATERAL NOTIFICACIONES -->
+  <div class="notificaciones-panel" id="panelNotificaciones">
+    <div class="notif-header">
+      <h3 style="font-size: 15px; margin: 0;">Centro de Notificaciones</h3>
+      <button class="modal-close" onclick="cerrarPanelNotificaciones()">×</button>
+    </div>
+    <div class="notif-list" id="notifList"></div>
+    <div style="padding: 14px; text-align: center; border-top: 1px solid var(--border);">
+       <button class="btn-historial" onclick="marcarTodasLeidas()" style="font-size: 12px;">Marcar todas como leídas</button>
+    </div>
+  </div>
+
+  <!-- Cargar módulo de conexión con el backend -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script src="js/api.js?v=2"></script>
+  <script src="js/cop-input.js"></script>
+
+  <script>
+
+    verificarSesion();
+
+    function formatCOP(n) {
+      return "$" + Number(n).toLocaleString("es-CO");
+    }
+
+    let metaSeleccionadaML = null;
+    let _precioChart = null;
+    const _gcM = 'rgba(255,255,255,0.06)', _tcM = 'rgba(255,255,255,0.45)';
+    const _fmtM = v => '$' + Number(v).toLocaleString('es-CO');
+
+    async function cargarMetasDOM() {
+      let usuarioId = getUsuarioId();
+      let lista = document.getElementById("listaMetas");
+
+      try {
+        let metas = await getMetas(usuarioId);
+
+        if (metas.length === 0) {
+          lista.innerHTML = '<p class="sin-datos">No hay metas registradas aún.</p>';
+          return;
+        }
+
+        lista.innerHTML = metas.map(meta => {
+          let porcentaje = (meta.montoActual / meta.montoObjetivo) * 100;
+          if(porcentaje > 100) porcentaje = 100;
+          
+          let estadoTexto = meta.estado === 'COMPLETADA' 
+              ? '<span style="color: #4ade80; font-size: 12px; font-weight: bold;">¡LOGRADA! 🎉</span>' 
+              : `<span style="font-size: 12px; color: var(--text-muted);">Progreso: ${porcentaje.toFixed(1)}%</span>`;
+
+          // Generar el bloque del producto vinculado en Mercado Libre si existe
+          let mlBlock = "";
+          if (meta.externalProductId) {
+              mlBlock = `
+              <div style="margin-top: 14px; background: var(--bg-hover); border-radius: var(--radius-sm); padding: 12px; display: flex; gap: 14px; align-items: center;">
+                 <img src="${meta.productImageUrl}" style="width: 48px; height: 48px; object-fit: contain; border-radius: 4px; background: #fff;" />
+                 <div style="flex: 1;">
+                    <div style="font-size: 12px; font-weight: 500; color: var(--text-primary); display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden;">${meta.productTitle}</div>
+                    <div style="font-size: 14px; font-family: var(--font-mono); color: var(--accent); font-weight: 600; margin-top: 2px;">
+                        ${formatCOP(meta.ultimoPrecioDetectado)}
+                        ${meta.ultimoDescuentoPorcentaje > 0 ? `<span style="color: var(--green); font-size: 11px; margin-left: 6px;">${meta.ultimoDescuentoPorcentaje}% OFF</span>` : ''}
+                    </div>
+                 </div>
+                 <div style="display: flex; flex-direction: column; gap: 6px;">
+                    <a href="${meta.productUrl}" target="_blank" style="font-size: 11px; color: #fff; background: var(--accent); padding: 4px 8px; border-radius: 4px; text-align: center;">Ver en ML</a>
+                    <button onclick="verHistorial(${meta.id})" style="font-size: 11px; color: var(--text-secondary); background: transparent; border: 1px solid var(--border); padding: 4px 8px; border-radius: 4px; cursor: pointer;">Historial</button>
+                 </div>
+              </div>
+              `;
+          } else {
+              mlBlock = `
+              <div style="margin-top: 14px;">
+                 <button onclick="abrirModalML(${meta.id})" style="font-size: 12px; color: var(--accent-text); background: var(--accent-light); border: 1px dashed var(--accent-mid); padding: 6px 12px; border-radius: 6px; cursor: pointer; width: 100%;">
+                    + Vincular producto Mercado Libre para seguimiento de precio
+                 </button>
+                 <button onclick="vincularPorUrl(${meta.id})" style="margin-top: 8px; font-size: 12px; color: var(--text-secondary); background: transparent; border: 1px solid var(--border); padding: 6px 12px; border-radius: 6px; cursor: pointer; width: 100%;">
+                    Vincular por URL o ID
+                 </button>
+              </div>
+              `;
+          }
+
+          return `
+            <div class="movimiento-item" style="flex-direction: column; align-items: stretch; gap: 10px;">
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div class="mov-info">
+                  <div class="mov-icono ingreso" style="background: var(--accent-light); color: var(--accent); border-color: rgba(13,123,110,0.2);">🎯</div>
+                  <div>
+                    <div class="mov-nombre">${meta.nombre}</div>
+                    <div class="mov-categoria">Límite: ${meta.fechaLimite || 'Sin Fecha'}</div>
+                  </div>
+                </div>
+                <div class="mov-derecha">
+                  <div class="mov-valores">
+                    <div class="mov-valor">${formatCOP(meta.montoActual)} <span style="font-size: 14px; font-weight: normal; color: var(--text-muted)">/ ${formatCOP(meta.montoObjetivo)}</span></div>
+                    ${estadoTexto}
+                  </div>
+                  <button class="btn-eliminar" onclick="borrarMeta(${meta.id})" title="Eliminar meta"></button>
+                </div>
+              </div>
+              
+              <div class="progress-container">
+                <div class="progress-bar" style="width: ${porcentaje}%"></div>
+              </div>
+
+              ${mlBlock}
+              
+              ${meta.estado !== 'COMPLETADA' ? `
+              <div class="meta-abonar" style="margin-top: 6px;">
+                <input type="text" inputmode="numeric" id="abono-${meta.id}" placeholder="Ej: 50.000" data-cop="true" onblur="initCOPInput(this)">
+                <button class="btn-abonar" onclick="hacerAbono(${meta.id})">Abonar</button>
+              </div>
+              ` : ''}
+            </div>
+          `;
+        }).join("");
+
+      } catch (error) {
+        lista.innerHTML = '<p class="sin-datos">Error al cargar metas.</p>';
+        console.error(error);
+      }
+    }
+
+    async function agregarMetaNueva() {
+      let nombre = document.getElementById("nombreMeta").value.trim();
+      let objetivo = document.getElementById("montoObjetivo").value;
+      let fecha = document.getElementById("fechaLimite").value;
+
+      if (!nombre || !objetivo || !fecha) {
+        alert("Completa todos los campos obligatorios.");
+        return;
+      }
+
+      let montoObj = parseCOP(objetivo);
+      if (isNaN(montoObj) || montoObj <= 0) {
+        alert("Ingresa un monto objetivo válido en pesos colombianos.");
+        return;
+      }
+
+      try {
+        await crearMeta(getUsuarioId(), {
+          nombre: nombre,
+          montoObjetivo: montoObj,
+          fechaLimite: fecha
+        });
+
+        document.getElementById("nombreMeta").value = "";
+        document.getElementById("montoObjetivo").value = "";
+        document.getElementById("fechaLimite").valueAsDate = new Date();
+
+        cargarMetasDOM();
+      } catch (error) {
+        alert("Error: " + error.message);
+      }
+    }
+
+    async function hacerAbono(id) {
+      let inputAbono = document.getElementById("abono-" + id);
+      let monto = parseCOP(inputAbono.value);
+
+      if (!monto || isNaN(monto) || monto <= 0) {
+        alert("Ingresa un monto válido para abonar.");
+        return;
+      }
+
+      try {
+        await abonarMeta(id, monto);
+        cargarMetasDOM();
+      } catch (error) {
+        alert("Error: " + error.message);
+      }
+    }
+
+    async function borrarMeta(id) {
+      if (confirm("¿Estás seguro de que deseas eliminar esta meta?")) {
+        try {
+          await eliminarMeta(id);
+          cargarMetasDOM();
+        } catch (error) {
+          alert("Error: " + error.message);
+        }
+      }
+    }
+
+    // ── INTEGRACIÓN MERCADO LIBRE ──
+
+    function abrirModalML(metaId) {
+      metaSeleccionadaML = metaId;
+      document.getElementById("modalML").classList.add("active");
+      document.getElementById("mlSearchInput").value = "";
+      document.getElementById("mlResults").innerHTML = "";
+      document.getElementById("mlSearchInput").focus();
+    }
+
+    function cerrarModalML() {
+      document.getElementById("modalML").classList.remove("active");
+      metaSeleccionadaML = null;
+    }
+
+    async function buscarML() {
+      let query = document.getElementById("mlSearchInput").value.trim();
+      if (!query) return;
+
+      document.getElementById("mlLoader").classList.remove("hidden");
+      document.getElementById("mlResults").innerHTML = "";
+
+      try {
+        let productos = await buscarProductosML(getUsuarioId(), query);
+        
+        document.getElementById("mlLoader").classList.add("hidden");
+        
+        if (productos.length === 0) {
+            document.getElementById("mlResults").innerHTML = "<p style='text-align:center; color:var(--text-muted);'>No se encontraron resultados.</p>";
+            return;
+        }
+
+        document.getElementById("mlResults").innerHTML = productos.map(p => `
+          <div class="ml-item">
+            <img src="${p.imagenUrl}" alt="prod">
+            <div class="ml-item-info">
+              <div class="ml-item-title">${p.titulo}</div>
+              <div class="ml-item-price">
+                ${formatCOP(p.precio)} 
+                ${p.descuentoPorcentaje > 0 ? `<span class="ml-item-discount">-${p.descuentoPorcentaje}%</span>` : ''}
+              </div>
+            </div>
+            <button class="btn-primario" onclick="vincularProducto('${p.id}')">Vincular</button>
+          </div>
+        `).join("");
+
+      } catch (error) {
+        document.getElementById("mlLoader").classList.add("hidden");
+        alert("Error buscando en ML: " + error.message);
+      }
+    }
+
+    async function vincularProducto(externalId) {
+      if (!metaSeleccionadaML) return;
+      
+      try {
+          // Preguntarle al usuario si quiere establecer un precio objetivo de alerta
+          let precioObjStr = prompt("¿Deseas recibir alerta cuando baje a algún precio específico? (Ingresa el precio sin puntos ni comas, o deja en blanco):");
+          let precioObj = null;
+          if (precioObjStr && !isNaN(parseFloat(precioObjStr))) {
+              precioObj = parseFloat(precioObjStr);
+          }
+
+          await activarSeguimiento(metaSeleccionadaML, externalId, precioObj, true);
+          cerrarModalML();
+          cargarMetasDOM();
+          alert("¡Producto vinculado exitosamente! Revisaremos el precio todos los días.");
+      } catch(error) {
+          alert("Error vinculando producto: " + error.message);
+      }
+    }
+
+    function extraerIdMercadoLibre(valor) {
+      if (!valor) return null;
+      let txt = valor.trim().toUpperCase();
+
+      // Si ya es un ID valido tipo MCO123..., MLA123..., MLM123...
+      let directo = txt.match(/^(MCO|MLA|MLM)\d+$/);
+      if (directo) return directo[0];
+
+      // Si viene desde URL tipo .../MCO-123456... o .../MLA-123456...
+      let conGuion = txt.match(/(MCO|MLA|MLM)-(\d+)/);
+      if (conGuion) return conGuion[1] + conGuion[2];
+
+      // Fallback: si trae el ID embebido sin guion en algun segmento
+      let embebido = txt.match(/(MCO|MLA|MLM)\d+/);
+      if (embebido) return embebido[0];
+
+      return null;
+    }
+
+    async function vincularPorUrl(metaId) {
+      let valor = prompt("Pega la URL del producto en Mercado Libre o el ID (ej: MCO123456789):");
+      if (!valor) return;
+
+      let externalId = extraerIdMercadoLibre(valor);
+      if (!externalId) {
+        alert("No pude identificar un ID valido. Usa una URL de ML o un ID como MCO123456789.");
+        return;
+      }
+
+      try {
+        let precioObjStr = prompt("Precio objetivo opcional (deja en blanco si no aplica):");
+        let precioObj = null;
+        if (precioObjStr && !isNaN(parseFloat(precioObjStr))) {
+          precioObj = parseFloat(precioObjStr);
+        }
+
+        let resp = await activarSeguimiento(metaId, externalId, precioObj, true);
+        await cargarMetasDOM();
+
+        if (resp && resp.warning) {
+          alert(resp.warning + "\\n\\nID vinculado: " + externalId);
+        } else {
+          alert("Producto vinculado correctamente. ID: " + externalId);
+        }
+      } catch (error) {
+        alert("Error vinculando por URL/ID: " + error.message);
+      }
+    }
+
+    async function verHistorial(metaId) {
+      document.getElementById("modalHistorial").classList.add("active");
+      document.getElementById("historialContent").innerHTML = "<p>Cargando historial...</p>";
+      
+      try {
+        let historial = await getHistorialPrecios(metaId);
+        
+        if (!historial || historial.length === 0) {
+          document.getElementById("historialContent").innerHTML = "<p>No hay historial registrado aún. El sistema revisa los precios periódicamente.</p>";
+          return;
+        }
+
+        let html = `
+          <div style="display:flex;gap:14px;margin-bottom:16px;align-items:center;">
+             <img src="${historial[0].imagenUrl}" style="width:60px;height:60px;object-fit:contain;border-radius:8px;">
+             <div>
+                <div style="font-weight:500;font-size:13px;">${historial[0].tituloProducto}</div>
+                <a href="${historial[0].linkProducto}" target="_blank" style="font-size:11px;color:var(--accent);">Ver en Mercado Libre ↗</a>
+             </div>
+          </div>
+          <p style="font-size:11px;font-weight:bold;color:var(--text-muted);text-transform:uppercase;margin-bottom:8px;">Evolución del precio</p>
+          <div class="chart-card" style="margin-bottom:16px;">
+            <div style="position:relative;height:180px;"><canvas id="precioLineChart"></canvas></div>
+          </div>
+          <div class="historial-precios-lista">
+        `;
+
+        // Datos para la línea (más antiguo → más reciente)
+        const hRev = [...historial].reverse();
+        const lineLabels = hRev.map(h => new Date(h.fechaRevision).toLocaleDateString('es-CO', { day:'numeric', month:'short' }));
+        const lineValues = hRev.map(h => h.precio);
+        const minP = Math.min(...lineValues), maxP = Math.max(...lineValues);
+        const lineColors = lineValues.map(v => v === minP ? 'rgba(74,222,128,1)' : v === maxP ? 'rgba(248,113,113,1)' : 'rgba(96,165,250,1)');
+
+        for (let i = 0; i < historial.length; i++) {
+            let h = historial[i];
+            let dateStr = new Date(h.fechaRevision).toLocaleString('es-CO');
+            
+            // Determinar si subió o bajó respecto al registro ANTERIOR en tiempo (que es el i+1 en el array, ya que vienen desc)
+            let clase = "";
+            let icono = "";
+            if (i < historial.length - 1) {
+                let precioAnterior = historial[i+1].precio;
+                if (h.precio < precioAnterior) { clase = "baja"; icono = "📉"; }
+                if (h.precio > precioAnterior) { clase = "sube"; icono = "📈"; }
+            } else if (i === historial.length -1) {
+                icono = "📌"; // precio inicial
+            }
+
+            html += `
+              <div class="historial-item ${clase}">
+                 <div style="color: var(--text-secondary);">${dateStr}</div>
+                 <div style="font-family: var(--font-mono); font-weight: 600;">
+                    ${icono} ${formatCOP(h.precio)}
+                 </div>
+              </div>
+            `;
+        }
+
+        html += "</div>";
+        document.getElementById("historialContent").innerHTML = html;
+
+        // Render line chart after DOM is ready
+        if (historial.length >= 2) {
+          const ctx = document.getElementById('precioLineChart');
+          if (_precioChart) _precioChart.destroy();
+          _precioChart = new Chart(ctx.getContext('2d'), {
+            type: 'line',
+            data: {
+              labels: lineLabels,
+              datasets: [{
+                label: 'Precio',
+                data: lineValues,
+                borderColor: 'rgba(96,165,250,1)',
+                backgroundColor: 'rgba(96,165,250,0.08)',
+                pointBackgroundColor: lineColors,
+                pointBorderColor: lineColors,
+                pointRadius: 5,
+                pointHoverRadius: 7,
+                tension: 0.3,
+                fill: true
+              }]
+            },
+            options: {
+              responsive: true, maintainAspectRatio: false,
+              plugins: {
+                legend: { display: false },
+                tooltip: { callbacks: { label: ctx => ' ' + _fmtM(ctx.raw) } }
+              },
+              scales: {
+                x: { grid: { color: _gcM }, ticks: { color: _tcM, font: { size: 10 } } },
+                y: { grid: { color: _gcM }, ticks: { color: _tcM, callback: _fmtM } }
+              }
+            }
+          });
+        }
+
+      } catch (error) {
+        document.getElementById("historialContent").innerHTML = "<p>Error cargando historial.</p>";
+      }
+    }
+
+    function cerrarModalHistorial() {
+      document.getElementById("modalHistorial").classList.remove("active");
+    }
+
+    // ── NOTIFICACIONES ──
+
+    async function cargarNotificacionesBurbuja() {
+       try {
+          let unreadCount = await getNotificacionesNoLeidasCount(getUsuarioId());
+          // Podrías poner un badge rojo en el botón si unreadCount > 0
+          let btn = document.querySelector(".btn-historial");
+          if (unreadCount > 0) {
+              btn.innerHTML = `🔔 Alertas <span style="background:var(--red); color:white; padding: 2px 6px; border-radius: 10px; font-size: 10px; margin-left:4px;">${unreadCount}</span>`;
+          } else {
+              btn.innerHTML = `🔔 Ver Alertas`;
+          }
+       } catch(e) {}
+    }
+
+    async function abrirPanelNotificaciones() {
+      document.getElementById("panelNotificaciones").classList.add("open");
+      let list = document.getElementById("notifList");
+      list.innerHTML = "<div style='padding: 20px; text-align: center;'>Cargando...</div>";
+      
+      try {
+        let notifs = await getNotificaciones(getUsuarioId());
+        
+        if (!notifs || notifs.length === 0) {
+           list.innerHTML = "<div style='padding: 30px 20px; text-align: center; color: var(--text-muted); font-size: 13px;'>No tienes notificaciones.</div>";
+           return;
+        }
+
+        list.innerHTML = notifs.map(n => `
+          <div class="notif-item ${n.leida ? '' : 'unread'}" onclick="clickNotificacion(${n.id})">
+             <div class="notif-title">${n.titulo}</div>
+             <div class="notif-msg">${n.mensaje}</div>
+             <div class="notif-time">${new Date(n.fecha).toLocaleString()}</div>
+          </div>
+        `).join("");
+
+      } catch (error) {
+        list.innerHTML = "<div style='padding: 20px; color: red;'>Error cargando notificaciones.</div>";
+      }
+    }
+
+    function cerrarPanelNotificaciones() {
+      document.getElementById("panelNotificaciones").classList.remove("open");
+      cargarNotificacionesBurbuja(); // refrescar badge por si se leyeron algunas
+    }
+
+    async function clickNotificacion(id) {
+       try {
+           await marcarNotificacionLeida(id);
+           abrirPanelNotificaciones(); // recargar la lista
+       } catch (e) {
+           console.error("Error marcando como leída", e);
+       }
+    }
+
+    async function marcarTodasLeidas() {
+       try {
+           await fetchAPI("/notificaciones/" + getUsuarioId() + "/leer-todas", { method: "PUT" });
+           abrirPanelNotificaciones();
+       } catch(e) {}
+    }
+
+    document.getElementById("fechaLimite").valueAsDate = new Date();
+    initAllCOPInputs();
+    cargarMetasDOM();
+    cargarNotificacionesBurbuja();
+    
+    // Configurar polling para chequear notificaciones cada minuto
+    setInterval(cargarNotificacionesBurbuja, 60000);
+
+  </script>
+
+  <style>
+    .chart-card { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 14px; padding: 14px 14px 10px; }
+    .chart-card-title { margin: 0 0 10px; font-size: 11px; font-weight: 600; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 0.6px; }
+  </style>
+
+</body>
+</html>

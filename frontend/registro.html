@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="UTF-8"> <!-- Para que los caracteres especiales se muestren bien -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- Ajuste para pantallas de celular -->
+  <title>Registro — FinanzasApp</title>
+  <link rel="icon" href="data:,"> <!-- Título en la pestaña -->
+  <link rel="stylesheet" href="css/estilos.css"> <!-- Estilos visuales -->
+</head>
+
+<body class="registro-body"> <!-- Clase para aplicar el fondo de la página de registro -->
+  <div class="registro-card"> <!-- Tarjeta contenedora del formulario -->
+    <div class="logo-area"> <!-- Encabezado de la tarjeta -->
+      <h2>Crear Cuenta</h2>
+      <p>Regístrate para comenzar</p>
+    </div>
+    <!-- Al enviar el form se ejecuta registrar(), que manda los datos al backend -->
+    <form onsubmit="registrar(event)">
+      <div>
+        <label>Nombre de usuario</label>
+        <input id="nombre" type="text" placeholder="Elige un nombre de usuario" required>
+        <!-- Este nombre es el que se usará para iniciar sesión -->
+      </div>
+      <div>
+        <label>Apellido</label>
+        <input id="apellido" type="text" placeholder="Tu apellido" required>
+      </div>
+      <div>
+        <label>Contraseña</label>
+        <input id="contrasena" type="password" placeholder="Crea una contraseña" required>
+      </div>
+      <div>
+        <label>Confirmar Contraseña</label>
+        <input id="confirmarContrasena" type="password" placeholder="Repite tu contraseña" required>
+        <!-- Este campo solo existe en el frontend para validar, no se manda al backend -->
+      </div>
+      <div>
+        <label>Tipo de Documento</label>
+        <select id="tipoDoc"> <!-- Lista desplegable con los tipos de documento -->
+          <option value="CC">Cedula de Ciudadania</option>
+          <option value="TI">Tarjeta de Identidad</option>
+          <option value="CE">Cédula de Extranjería</option>
+          <option value="PA">Pasaporte</option>
+        </select>
+      </div>
+      <div>
+        <label>Número de Documento</label>
+        <input id="nDoc" type="text" placeholder="Solo números" required oninput="validarNumeros(this)">
+        <!-- oninput llama a validarNumeros() cada vez que el usuario escribe algo -->
+      </div>
+      <div>
+        <label>Universidad</label>
+        <input id="universidad" type="text" placeholder="Tu universidad" required>
+      </div>
+      <button class="boton-registro" type="submit">Crear Cuenta</button> <!-- Dispara el onsubmit -->
+    </form>
+    <a href="index.html" class="volver-login">← Volver al login</a> <!-- Enlace de regreso -->
+  </div>
+  <script src="js/api.js"></script> <!-- Funciones de conexión con el backend -->
+  <script>
+    // Se ejecuta cada vez que el usuario escribe en el campo de documento
+    function validarNumeros(input) {
+      if (/[^0-9]/.test(input.value)) { // Si encuentra algo que no sea número
+        input.value = input.value.replace(/[^0-9]/g, ""); // Lo borra del campo
+        alert("Solo se permiten números."); // Avisa al usuario
+      }
+    }
+    async function registrar(event) {
+      event.preventDefault(); // Evita que la página se recargue al enviar el form
+
+      let contrasena = document.getElementById("contrasena").value;
+      let confirmar = document.getElementById("confirmarContrasena").value;
+
+      if (contrasena !== confirmar) { // Compara las dos contraseñas antes de mandar al backend
+        alert("Las contraseñas no coinciden");
+        return; // Detiene la ejecución si no coinciden
+      }
+      // Arma el objeto con todos los datos del formulario
+      let datos = {
+        nombre: document.getElementById("nombre").value,
+        apellido: document.getElementById("apellido").value,
+        contrasena: contrasena,
+        tipoDoc: document.getElementById("tipoDoc").value,
+        nDoc: document.getElementById("nDoc").value,
+        universidad: document.getElementById("universidad").value
+      };
+      try {
+        await registrarUsuario(datos); // Función de api.js que hace POST /api/usuarios/registro
+        alert("¡Registro exitoso! Ahora puedes iniciar sesión.");
+        window.location.href = "index.html"; // Redirige al login después de registrarse
+      } catch (error) {
+        alert("Error: " + error.message); // Muestra el error que devolvió el backend
+      }
+    }
+  </script>
+</body>
+
+</html>

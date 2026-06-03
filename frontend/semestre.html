@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bienvenido — FinanzasApp</title>
+  <link rel="stylesheet" href="css/estilos.css">
+  <style>
+    body.setup-body {
+      background: var(--bg-body);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .setup-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      padding: 48px 44px;
+      width: 480px;
+      max-width: 95vw;
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow-lg);
+      color: var(--text-primary);
+    }
+
+    .setup-card h1 {
+      font-family: var(--font-display);
+      font-size: 24px;
+      font-weight: 600;
+      margin: 0 0 8px 0;
+      text-align: center;
+      color: var(--text-primary);
+    }
+
+    .setup-card .subtitle {
+      font-size: 13.5px;
+      color: var(--text-secondary);
+      text-align: center;
+      margin: 0 0 32px 0;
+    }
+
+    .step-indicator {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 32px;
+    }
+
+    .step-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: rgba(104, 6, 241, 0.2);
+      transition: background 0.3s;
+    }
+
+    .step-dot.active {
+      background: #4ade80;
+    }
+
+    .step-dot.completed {
+      background: #4ade80;
+    }
+
+    .step-title {
+      font-size: 17px;
+      font-weight: 600;
+      margin: 0 0 6px 0;
+    }
+
+    .step-desc {
+      font-size: 13px;
+      color: var(--text-secondary);
+      margin: 0 0 24px 0;
+    }
+
+    .setup-form label {
+      display: block;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      margin-bottom: 6px;
+    }
+
+    .setup-form input,
+    .setup-form select {
+      width: 100%;
+      padding: 12px 14px;
+      background: var(--bg-input);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text-primary);
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.2s;
+      margin-bottom: 16px;
+    }
+
+    .setup-form input:focus,
+    .setup-form select:focus {
+      border-color: var(--accent-mid);
+      background: #fff;
+      box-shadow: 0 0 0 3px rgba(13,123,110,0.10);
+    }
+
+    .setup-form select option {
+      background: #fff;
+      color: var(--text-primary);
+    }
+
+    .setup-btn {
+      width: 100%;
+      padding: 14px;
+      border: none;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #4ade80, #4ade80);
+      color: white;
+      font-weight: 700;
+      font-size: 15px;
+      cursor: pointer;
+      transition: opacity 0.2s, transform 0.2s;
+      margin-top: 8px;
+    }
+
+    .setup-btn:hover {
+      opacity: 0.88;
+      transform: translateY(-1px);
+    }
+
+    .setup-btn-secondary {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text-secondary);
+      font-size: 13px;
+      margin-top: 12px;
+    }
+
+    .setup-btn-secondary:hover {
+      background: var(--bg-hover);
+      color: var(--text-primary);
+      opacity: 1;
+      transform: none;
+    }
+
+    .pregunta-texto {
+      font-size: 15px;
+      color: var(--text-secondary);
+      margin-bottom: 20px;
+      line-height: 1.5;
+    }
+
+    .semestre-opciones {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .semestre-opcion {
+      background: var(--bg-input);
+      border: 2px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text-secondary);
+    }
+
+    .semestre-opcion:hover {
+      border-color: var(--accent-mid);
+      background: var(--accent-light);
+      color: var(--accent-text);
+    }
+
+    .semestre-opcion.selected {
+      border-color: var(--accent);
+      background: var(--accent-light);
+      color: var(--accent-text);
+    }
+
+    .semestre-opcion .num {
+      font-size: 24px;
+      font-weight: 700;
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    .error-msg {
+      padding: 12px 16px;
+      background: rgba(248, 113, 113, 0.12);
+      border: 1px solid rgba(248, 113, 113, 0.3);
+      border-radius: 8px;
+      color: #f87171;
+      font-size: 13px;
+      margin-top: 12px;
+      display: none;
+    }
+
+    .hidden {
+      display: none;
+    }
+  </style>
+</head>
+
+<body class="setup-body">
+
+  <div class="setup-card">
+    <!-- Indicador de pasos -->
+    <div class="step-indicator">
+      <div class="step-dot active" id="dot1"></div>
+      <div class="step-dot" id="dot2"></div>
+      <div class="step-dot" id="dot3"></div>
+    </div>
+
+    <!-- Paso 1: Semestre -->
+    <div id="step1">
+      <h1>Bienvenido a FinanzasApp</h1>
+      <p class="subtitle">Configuremos tu período académico</p>
+
+      <p class="pregunta-texto">¿En qué semestre estás actualmente?</p>
+
+      <div class="semestre-opciones" id="semestreOpciones"></div>
+
+      <button class="setup-btn" onclick="irPaso2()">Continuar →</button>
+      <div id="error1" class="error-msg"></div>
+    </div>
+
+    <!-- Paso 2: Fechas del período -->
+    <div id="step2" class="hidden">
+      <h1>Período Académico</h1>
+      <p class="subtitle">Semestre <span id="semestreSeleccionadoTexto">1</span></p>
+
+      <div class="setup-form">
+        <label>Fecha de inicio del semestre</label>
+        <input type="date" id="fechaInicio">
+
+        <label>Fecha de fin del semestre</label>
+        <input type="date" id="fechaFin">
+      </div>
+
+      <button class="setup-btn" onclick="irPaso3()">Continuar →</button>
+      <button class="setup-btn setup-btn-secondary" onclick="volverPaso1()">← Atrás</button>
+      <div id="error2" class="error-msg"></div>
+    </div>
+
+    <!-- Paso 3: Ahorro automático -->
+    <div id="step3" class="hidden">
+      <h1>Ahorro Automático</h1>
+      <p class="subtitle">Último paso — configuremos tu ahorro</p>
+
+      <p class="pregunta-texto">¿Qué porcentaje de tus ingresos quieres separar automáticamente para ahorro?</p>
+
+      <div class="setup-form">
+        <label>Porcentaje de ahorro (%)</label>
+        <input type="number" id="porcentajeAhorro" min="0" max="100" value="10">
+
+        <small style="color: var(--text-muted); font-size: 12px; display: block; margin-bottom: 8px;">
+          Ej: Si ganas $500.000 y pones 10%, se separarán $50.000 para ahorro cada vez que registres un ingreso.
+        </small>
+
+        <label style="margin-top: 8px;">¿Cuánto quieres ahorrar en total este semestre?</label>
+        <input type="text" inputmode="numeric" id="metaAhorro" placeholder="Ej: 500.000" data-cop="true">
+      </div>
+
+      <button class="setup-btn" onclick="finalizar()">Comenzar →</button>
+      <button class="setup-btn setup-btn-secondary" onclick="volverPaso2()">← Atrás</button>
+      <div id="error3" class="error-msg"></div>
+    </div>
+
+  </div>
+
+  <script src="js/api.js"></script>
+  <script src="js/cop-input.js"></script>
+  <script>
+    // Verificar sesión
+    verificarSesion();
+
+    let semestreSeleccionado = null;
+    let esPrimeraVez = sessionStorage.getItem("primeraVez") === "true";
+
+    // Generar opciones de semestre 1-10
+    const contenedor = document.getElementById("semestreOpciones");
+    for (let i = 1; i <= 10; i++) {
+      let btn = document.createElement("div");
+      btn.className = "semestre-opcion";
+      btn.innerHTML = '<span class="num">Sem ' + i + '</span>';
+      btn.dataset.semestre = i;
+      btn.onclick = function () {
+        document.querySelectorAll(".semestre-opcion").forEach(el => el.classList.remove("selected"));
+        this.classList.add("selected");
+        semestreSeleccionado = i;
+      };
+      contenedor.appendChild(btn);
+    }
+
+    function mostrarError(id, mensaje) {
+      let el = document.getElementById(id);
+      el.textContent = mensaje;
+      el.style.display = "block";
+      setTimeout(() => { el.style.display = "none"; }, 4000);
+    }
+
+    function actualizarDots(step) {
+      for (let i = 1; i <= 3; i++) {
+        let dot = document.getElementById("dot" + i);
+        dot.className = "step-dot";
+        if (i < step) dot.classList.add("completed");
+        if (i === step) dot.classList.add("active");
+      }
+    }
+
+    function irPaso2() {
+      if (!semestreSeleccionado) {
+        mostrarError("error1", "Selecciona tu semestre para continuar.");
+        return;
+      }
+      document.getElementById("step1").classList.add("hidden");
+      document.getElementById("step2").classList.remove("hidden");
+      document.getElementById("semestreSeleccionadoTexto").textContent = semestreSeleccionado;
+      actualizarDots(2);
+    }
+
+    function irPaso3() {
+      let fechaInicio = document.getElementById("fechaInicio").value;
+      let fechaFin = document.getElementById("fechaFin").value;
+
+      if (!fechaInicio || !fechaFin) {
+        mostrarError("error2", "Completa ambas fechas del período.");
+        return;
+      }
+
+      if (new Date(fechaFin) <= new Date(fechaInicio)) {
+        mostrarError("error2", "La fecha de fin debe ser posterior al inicio.");
+        return;
+      }
+
+      document.getElementById("step2").classList.add("hidden");
+      document.getElementById("step3").classList.remove("hidden");
+      actualizarDots(3);
+    }
+
+    function volverPaso1() {
+      document.getElementById("step2").classList.add("hidden");
+      document.getElementById("step1").classList.remove("hidden");
+      actualizarDots(1);
+    }
+
+    function volverPaso2() {
+      document.getElementById("step3").classList.add("hidden");
+      document.getElementById("step2").classList.remove("hidden");
+      actualizarDots(2);
+    }
+
+    async function finalizar() {
+      let usuarioId = getUsuarioId();
+      let fechaInicio = document.getElementById("fechaInicio").value;
+      let fechaFin = document.getElementById("fechaFin").value;
+      let porcentaje = parseFloat(document.getElementById("porcentajeAhorro").value);
+      let metaAhorro = parseCOP(document.getElementById("metaAhorro").value) || 0;
+
+      if (!usuarioId) {
+        mostrarError("error3", "No hay sesión activa. Inicia sesión nuevamente.");
+        return;
+      }
+
+      if (porcentaje < 0 || porcentaje > 100) {
+        mostrarError("error3", "El porcentaje debe estar entre 0 y 100.");
+        return;
+      }
+
+      // Armar el objeto con los datos del semestre
+      let datosSemestre = {
+        semestreActual: semestreSeleccionado,
+        fechaInicioSemestre: fechaInicio,
+        fechaFinSemestre: fechaFin,
+        porcentajeAhorro: porcentaje
+      };
+
+      console.log("Enviando configuración de semestre:", JSON.stringify(datosSemestre));
+      console.log("Usuario ID:", usuarioId);
+
+      try {
+        let resultado = await configurarSemestre(usuarioId, datosSemestre);
+        console.log("Semestre configurado exitosamente:", resultado);
+
+        // Si puso meta de ahorro, crear una meta
+        if (metaAhorro > 0) {
+          await crearMeta(usuarioId, {
+            nombre: "Meta de ahorro - Semestre " + semestreSeleccionado,
+            montoObjetivo: metaAhorro,
+            fechaLimite: fechaFin
+          });
+        }
+
+        // Limpiar flag de primera vez
+        sessionStorage.removeItem("primeraVez");
+
+        // Ir al menú
+        window.location.href = "menu.html";
+
+      } catch (error) {
+        console.error("Error al configurar semestre:", error);
+        mostrarError("error3", error.message);
+      }
+    }
+    initAllCOPInputs();
+  </script>
+
+</body>
+
+</html>
