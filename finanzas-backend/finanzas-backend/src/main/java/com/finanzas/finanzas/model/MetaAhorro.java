@@ -1,7 +1,10 @@
 package com.finanzas.finanzas.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 
@@ -27,6 +30,9 @@ public class MetaAhorro {
     private Long id;
 
     /** Relación con el usuario propietario de la meta */
+    @JsonIgnore
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "usuario_id", nullable = false)
     private Usuario usuario;
@@ -130,8 +136,14 @@ public class MetaAhorro {
 
     /**
      * Historial de precios - relación OneToMany (cascade para que
-     * se eliminen al borrar la meta)
+     * se eliminen al borrar la meta).
+     * Se excluye del JSON/toString/hashCode para evitar recursión infinita
+     * (HistorialPrecio.meta apunta de vuelta a esta meta). El historial se
+     * consulta en GET /api/metas/{id}/historial-precios.
      */
+    @JsonIgnore
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     @OneToMany(mappedBy = "meta", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<HistorialPrecio> historialPrecios = new ArrayList<>();
 }

@@ -8,6 +8,7 @@ import com.finanzas.finanzas.repository.IngresoRepository;
 import com.finanzas.finanzas.repository.UsuarioRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.HashMap;
@@ -26,28 +27,41 @@ public class GastoService {
     @Autowired
     private UsuarioRepository usuarioRepository;
 
-    // ── Registrar gasto (descuenta del ingreso) ────────────────
+    private static void validar(Gasto gasto) {
+        if (gasto.getMonto() == null || gasto.getMonto() <= 0) {
+            throw new IllegalArgumentException("El monto del gasto debe ser mayor a 0.");
+        }
+        if (gasto.getFecha() == null) {
+            throw new IllegalArgumentException("La fecha del gasto es obligatoria (YYYY-MM-DD).");
+        }
+    }
+
+    // ── Registrar gasto asociado a un ingreso ──────────────────
+    // Antes se restaba el gasto del monto del ingreso Y además se contaba como
+    // gasto, así que el saldo (ingresos - gastos) bajaba el doble. Ahora el
+    // ingreso no se modifica; solo se valida que le quede disponible.
     public Gasto registrar(Long usuarioId, Long ingresoId, Gasto gasto) {
         Usuario usuario = usuarioRepository.findById(usuarioId)
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado."));
+        validar(gasto);
 
         Ingreso ingreso = ingresoRepository.findById(ingresoId)
                 .orElseThrow(() -> new RuntimeException("Ingreso no encontrado."));
-
-        if (gasto.getMonto() > ingreso.getMonto()) {
-            throw new RuntimeException("El gasto supera el monto disponible del ingreso.");
+        if (!ingreso.getUsuario().getId().equals(usuario.getId())) {
+            throw new IllegalArgumentException("El ingreso no pertenece a este usuario.");
         }
 
-        // Asigna semestre del usuario si no se envió
+        double disponible = ingreso.getMonto() - gastoRepository.sumMontoByIngreso(ingreso);
+        if (gasto.getMonto() > disponible) {
+            throw new IllegalStateException("El gasto supera el monto disponible del ingreso ($"
+                    + String.format(new java.util.Locale("es", "CO"), "%,.0f", Math.max(disponible, 0)) + ").");
+        }
+
         if (gasto.getSemestre() == null) {
             gasto.setSemestre(usuario.getSemestreActual());
         }
 
-        // Descontar del ingreso
-        ingreso.setMonto(ingreso.getMonto() - gasto.getMonto());
-        ingresoRepository.save(ingreso);
-
-        // Guardar gasto
+        gasto.setId(null);
         gasto.setUsuario(usuario);
         gasto.setIngreso(ingreso);
         return gastoRepository.save(gasto);
@@ -57,6 +71,9 @@ public class GastoService {
     public Gasto registrarSimple(Long usuarioId, Gasto gasto) {
         Usuario usuario = usuarioRepository.findById(usuarioId)
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado."));
+        validar(gasto);
+        // Ignorar un id enviado por el cliente: si no, save() sobrescribiría otro gasto
+        gasto.setId(null);
         gasto.setUsuario(usuario);
 
         if (gasto.getSemestre() == null) {
@@ -147,7 +164,9 @@ public class GastoService {
     // ── Resumen semanal (para notificaciones) ────────────────
     public Map<String, Object> resumenSemanal(Long usuarioId) {
         LocalDate hoy = LocalDate.now();
-        LocalDate fechaInicio = hoy.minusWeeks(1);
+        // Últimos 7 días INCLUYENDO hoy. Con minusWeeks(1) y BETWEEN (inclusivo)
+        // se tomaban 8 días y el total no cuadraba con la gráfica de 7 días.
+        LocalDate fechaInicio = hoy.minusDays(6);
 
         List<Gasto> gastos = listarSemanales(usuarioId, fechaInicio, hoy);
         Double total = totalSemanales(usuarioId, fechaInicio, hoy);
@@ -167,19 +186,29 @@ public class GastoService {
     public Gasto editar(Long id, Gasto datosNuevos) {
         Gasto gasto = gastoRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Gasto no encontrado."));
+        validar(datosNuevos);
         gasto.setMonto(datosNuevos.getMonto());
         gasto.setDescripcion(datosNuevos.getDescripcion());
         gasto.setFecha(datosNuevos.getFecha());
         gasto.setCategoria(datosNuevos.getCategoria());
-        gasto.setSemestre(datosNuevos.getSemestre());
+        if (datosNuevos.getSemestre() != null) {
+            gasto.setSemestre(datosNuevos.getSemestre());
+        }
         return gastoRepository.save(gasto);
     }
 
     // ── Eliminar gasto ──────────────────────────────────────
+    // Si se borra un gasto de "Ahorro automático", ese dinero deja de estar
+    // ahorrado: se descuenta también del monto ahorrado del usuario.
+    @Transactional
     public void eliminar(Long id) {
-        if (!gastoRepository.existsById(id)) {
-            throw new RuntimeException("Gasto no encontrado.");
+        Gasto gasto = gastoRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Gasto no encontrado."));
+        if (gasto.getDescripcion() != null && gasto.getDescripcion().startsWith(IngresoService.PREFIJO_AHORRO_AUTO)) {
+            Usuario usuario = gasto.getUsuario();
+            usuario.setMontoAhorrado(Math.max(0.0, usuario.getMontoAhorrado() - gasto.getMonto()));
+            usuarioRepository.save(usuario);
         }
-        gastoRepository.deleteById(id);
+        gastoRepository.delete(gasto);
     }
 }

@@ -1,7 +1,10 @@
 package com.finanzas.finanzas.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 
@@ -26,6 +29,9 @@ public class HistorialPrecio {
     private Long id;
 
     /** Meta de ahorro a la que pertenece este registro */
+    @JsonIgnore
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "meta_id", nullable = false)
     private MetaAhorro meta;

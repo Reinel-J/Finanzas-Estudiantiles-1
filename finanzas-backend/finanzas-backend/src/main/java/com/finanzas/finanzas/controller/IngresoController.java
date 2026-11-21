@@ -3,6 +3,7 @@ package com.finanzas.finanzas.controller;
 import com.finanzas.finanzas.model.Ingreso;
 import com.finanzas.finanzas.service.IngresoService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -53,9 +54,9 @@ public class IngresoController {
     @GetMapping("/{usuarioId}/semana")
     public ResponseEntity<List<Ingreso>> listarSemanales(
             @PathVariable Long usuarioId,
-            @RequestParam(required = false) LocalDate fecha) {
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fecha) {
         LocalDate fechaFin = fecha != null ? fecha : LocalDate.now();
-        LocalDate fechaInicio = fechaFin.minusWeeks(1);
+        LocalDate fechaInicio = fechaFin.minusDays(6); // últimos 7 días incluyendo fechaFin
         return ResponseEntity.ok(ingresoService.listarSemanales(usuarioId, fechaInicio, fechaFin));
     }
 

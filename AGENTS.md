@@ -26,6 +26,13 @@ Student finance tracker: plain HTML/JS frontend calling a Spring Boot REST API b
 
 ## Commands
 
+### Docker (full stack: MySQL + backend + frontend)
+```bash
+docker compose up -d --build      # frontend :8080, backend :8081, MySQL :3307
+docker compose down -v            # stop and wipe DB volume
+```
+Ports/passwords overridable via `.env` (see `.env.example`). Backend gets DB settings from `SPRING_DATASOURCE_*` env vars in `docker-compose.yml`.
+
 ### Start backend
 ```bash
 cd finanzas-backend/finanzas-backend
@@ -60,6 +67,11 @@ Open `frontend/index.html` in a browser. No build step. Use VS Code Live Server 
 - **CORS**: Enabled via `SecurityConfig.java` — required because frontend (8080) and backend (8081) are different origins.
 - **Passwords**: Stored plain-text (no `PasswordEncoder` bean). `@JsonProperty(access = WRITE_ONLY)` on `Usuario.contrasena` prevents leaking passwords in JSON responses.
 - **Lombok**: Used for boilerplate reduction. IDEs need Lombok plugin; Maven compiles with annotation processor.
+- **JSON of entities**: `usuario` relations and `MetaAhorro.historialPrecios` / `HistorialPrecio.meta` are `@JsonIgnore` (avoids Hibernate lazy-proxy 500s and infinite recursion). Keep bidirectional relations out of Lombok `toString`/`equals` with `@ToString.Exclude` / `@EqualsAndHashCode.Exclude`.
+- **Create endpoints ignore client `id`**: services call `setId(null)` before `save()`; otherwise JPA merges and overwrites an existing row (this allowed account takeover via `/usuarios/registro`).
+- **Errors**: `GlobalExceptionHandler` returns `{ "error": "..." }` for any uncaught exception — the shape `fetchAPI()` expects.
+- **Currency**: `MonedaService` uses the keyless `open.er-api.com` endpoint unless `moneda.api-key` / `MONEDA_API_KEY` is set. Rates cached 1 h.
+- **Timezone**: Docker backend runs with `TZ=America/Bogota` so `LocalDate.now()` matches the user's day.
 
 ## API endpoints (base: `http://localhost:8081/api`)
 

@@ -5,6 +5,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Conversión de Moneda — FinanzasApp</title>
+  <link rel="icon" href="data:,">
   <link rel="stylesheet" href="css/estilos.css">
 </head>
 
@@ -80,7 +81,7 @@
           </select>
         </div>
 
-        <button type="submit" class="btn btn-primario">Convertir</button>
+        <button type="submit" class="btn-primario">Convertir</button>
       </form>
 
       <div id="resultado" class="resultado-conversion" style="display: none;"></div>
@@ -98,7 +99,10 @@
     }
 
     function formatDecimal(n) {
-      return Number(n).toLocaleString("es-CO", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      // Tasas pequeñas (ej: 1 COP = 0,000299 USD) necesitan más decimales
+      const v = Number(n);
+      const decimales = Math.abs(v) >= 1 ? 2 : 6;
+      return v.toLocaleString("es-CO", { minimumFractionDigits: 2, maximumFractionDigits: decimales });
     }
 
     document.getElementById("formConvertir").addEventListener("submit", async (e) => {

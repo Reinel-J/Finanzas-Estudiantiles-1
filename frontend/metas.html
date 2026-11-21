@@ -1,9 +1,11 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Metas de Ahorro — FinanzasApp</title>
-  <link rel="stylesheet" href="css/estilos.css">
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Metas de Ahorro — FinanzasApp</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="css/estilos.css">
 </head>
 <body>
 
@@ -39,11 +41,11 @@
     <p class="page-subtitle">Establece objetivos y haz seguimiento de tu progreso</p>
 
     <!-- Contenedor para Alertas Inteligentes (Notificaciones) -->
-    <div id="notificacionesContainer" style="margin-bottom: 20px;"></div>
+    <div id="notificacionesContainer"></div>
 
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-      <p class="seccion-titulo" style="margin: 0;">Crear nueva meta</p>
-      <button class="btn-historial" onclick="abrirPanelNotificaciones()">🔔 Ver Alertas</button>
+    <div class="metas-toolbar">
+      <p class="seccion-titulo">Crear nueva meta</p>
+      <button class="btn-secundario" id="btnAlertas" onclick="abrirPanelNotificaciones()">🔔 Ver Alertas</button>
     </div>
 
     <div class="form-agregar">
@@ -79,7 +81,7 @@
           <input type="text" id="mlSearchInput" placeholder="Ej: iPhone 15, Laptop ASUS..." onkeypress="if(event.key === 'Enter') buscarML()">
           <button class="btn-primario" onclick="buscarML()">Buscar</button>
         </div>
-        <div id="mlLoader" class="hidden" style="text-align:center; padding: 20px; color: var(--text-muted);">Buscando productos...</div>
+        <div id="mlLoader" class="hidden sin-datos">Buscando productos...</div>
         <div class="ml-results" id="mlResults"></div>
       </div>
     </div>
@@ -101,12 +103,12 @@
   <!-- PANEL LATERAL NOTIFICACIONES -->
   <div class="notificaciones-panel" id="panelNotificaciones">
     <div class="notif-header">
-      <h3 style="font-size: 15px; margin: 0;">Centro de Notificaciones</h3>
+      <h3 style="font-size: 15px; font-weight: 600;">Centro de Notificaciones</h3>
       <button class="modal-close" onclick="cerrarPanelNotificaciones()">×</button>
     </div>
     <div class="notif-list" id="notifList"></div>
     <div style="padding: 14px; text-align: center; border-top: 1px solid var(--border);">
-       <button class="btn-historial" onclick="marcarTodasLeidas()" style="font-size: 12px;">Marcar todas como leídas</button>
+       <button class="btn-secundario" onclick="marcarTodasLeidas()" style="font-size: 12px;">Marcar todas como leídas</button>
     </div>
   </div>
 
@@ -125,7 +127,7 @@
 
     let metaSeleccionadaML = null;
     let _precioChart = null;
-    const _gcM = 'rgba(255,255,255,0.06)', _tcM = 'rgba(255,255,255,0.45)';
+    const _gcM = '#eef0f3', _tcM = '#64748b';
     const _fmtM = v => '$' + Number(v).toLocaleString('es-CO');
 
     async function cargarMetasDOM() {
@@ -145,35 +147,35 @@
           if(porcentaje > 100) porcentaje = 100;
           
           let estadoTexto = meta.estado === 'COMPLETADA' 
-              ? '<span style="color: #4ade80; font-size: 12px; font-weight: bold;">¡LOGRADA! 🎉</span>' 
-              : `<span style="font-size: 12px; color: var(--text-muted);">Progreso: ${porcentaje.toFixed(1)}%</span>`;
+              ? '<span class="badge badge-green">¡Lograda! 🎉</span>' 
+              : `<div class="mov-fecha">Progreso: ${porcentaje.toFixed(1)}%</div>`;
 
           // Generar el bloque del producto vinculado en Mercado Libre si existe
           let mlBlock = "";
           if (meta.externalProductId) {
               mlBlock = `
-              <div style="margin-top: 14px; background: var(--bg-hover); border-radius: var(--radius-sm); padding: 12px; display: flex; gap: 14px; align-items: center;">
-                 <img src="${meta.productImageUrl}" style="width: 48px; height: 48px; object-fit: contain; border-radius: 4px; background: #fff;" />
-                 <div style="flex: 1;">
+              <div class="meta-ml">
+                 <img src="${meta.productImageUrl}" alt="" />
+                 <div style="flex: 1; min-width: 0;">
                     <div style="font-size: 12px; font-weight: 500; color: var(--text-primary); display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden;">${meta.productTitle}</div>
                     <div style="font-size: 14px; font-family: var(--font-mono); color: var(--accent); font-weight: 600; margin-top: 2px;">
                         ${formatCOP(meta.ultimoPrecioDetectado)}
                         ${meta.ultimoDescuentoPorcentaje > 0 ? `<span style="color: var(--green); font-size: 11px; margin-left: 6px;">${meta.ultimoDescuentoPorcentaje}% OFF</span>` : ''}
                     </div>
                  </div>
-                 <div style="display: flex; flex-direction: column; gap: 6px;">
-                    <a href="${meta.productUrl}" target="_blank" style="font-size: 11px; color: #fff; background: var(--accent); padding: 4px 8px; border-radius: 4px; text-align: center;">Ver en ML</a>
-                    <button onclick="verHistorial(${meta.id})" style="font-size: 11px; color: var(--text-secondary); background: transparent; border: 1px solid var(--border); padding: 4px 8px; border-radius: 4px; cursor: pointer;">Historial</button>
+                 <div class="meta-ml-acciones">
+                    <a href="${meta.productUrl}" target="_blank" rel="noopener" class="meta-ml-btn primario">Ver en ML</a>
+                    <button onclick="verHistorial(${meta.id})" class="meta-ml-btn">Historial</button>
                  </div>
               </div>
               `;
           } else {
               mlBlock = `
-              <div style="margin-top: 14px;">
-                 <button onclick="abrirModalML(${meta.id})" style="font-size: 12px; color: var(--accent-text); background: var(--accent-light); border: 1px dashed var(--accent-mid); padding: 6px 12px; border-radius: 6px; cursor: pointer; width: 100%;">
-                    + Vincular producto Mercado Libre para seguimiento de precio
+              <div class="meta-vincular">
+                 <button onclick="abrirModalML(${meta.id})" class="meta-vincular-btn principal">
+                    + Vincular producto de Mercado Libre para seguimiento de precio
                  </button>
-                 <button onclick="vincularPorUrl(${meta.id})" style="margin-top: 8px; font-size: 12px; color: var(--text-secondary); background: transparent; border: 1px solid var(--border); padding: 6px 12px; border-radius: 6px; cursor: pointer; width: 100%;">
+                 <button onclick="vincularPorUrl(${meta.id})" class="meta-vincular-btn">
                     Vincular por URL o ID
                  </button>
               </div>
@@ -181,10 +183,10 @@
           }
 
           return `
-            <div class="movimiento-item" style="flex-direction: column; align-items: stretch; gap: 10px;">
-              <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div class="movimiento-item meta-item">
+              <div class="meta-header">
                 <div class="mov-info">
-                  <div class="mov-icono ingreso" style="background: var(--accent-light); color: var(--accent); border-color: rgba(13,123,110,0.2);">🎯</div>
+                  <div class="mov-icono meta">🎯</div>
                   <div>
                     <div class="mov-nombre">${meta.nombre}</div>
                     <div class="mov-categoria">Límite: ${meta.fechaLimite || 'Sin Fecha'}</div>
@@ -192,7 +194,7 @@
                 </div>
                 <div class="mov-derecha">
                   <div class="mov-valores">
-                    <div class="mov-valor">${formatCOP(meta.montoActual)} <span style="font-size: 14px; font-weight: normal; color: var(--text-muted)">/ ${formatCOP(meta.montoObjetivo)}</span></div>
+                    <div class="mov-valor">${formatCOP(meta.montoActual)} <span class="meta-objetivo">/ ${formatCOP(meta.montoObjetivo)}</span></div>
                     ${estadoTexto}
                   </div>
                   <button class="btn-eliminar" onclick="borrarMeta(${meta.id})" title="Eliminar meta"></button>
@@ -206,7 +208,7 @@
               ${mlBlock}
               
               ${meta.estado !== 'COMPLETADA' ? `
-              <div class="meta-abonar" style="margin-top: 6px;">
+              <div class="meta-abonar">
                 <input type="text" inputmode="numeric" id="abono-${meta.id}" placeholder="Ej: 50.000" data-cop="true" onblur="initCOPInput(this)">
                 <button class="btn-abonar" onclick="hacerAbono(${meta.id})">Abonar</button>
               </div>
@@ -417,13 +419,13 @@
 
         let html = `
           <div style="display:flex;gap:14px;margin-bottom:16px;align-items:center;">
-             <img src="${historial[0].imagenUrl}" style="width:60px;height:60px;object-fit:contain;border-radius:8px;">
+             <img src="${historial[0].imagenUrl}" alt="" style="width:60px;height:60px;object-fit:contain;border-radius:8px;border:1px solid var(--border);background:#fff;">
              <div>
                 <div style="font-weight:500;font-size:13px;">${historial[0].tituloProducto}</div>
                 <a href="${historial[0].linkProducto}" target="_blank" style="font-size:11px;color:var(--accent);">Ver en Mercado Libre ↗</a>
              </div>
           </div>
-          <p style="font-size:11px;font-weight:bold;color:var(--text-muted);text-transform:uppercase;margin-bottom:8px;">Evolución del precio</p>
+          <p class="chart-card-title">Evolución del precio</p>
           <div class="chart-card" style="margin-bottom:16px;">
             <div style="position:relative;height:180px;"><canvas id="precioLineChart"></canvas></div>
           </div>
@@ -435,7 +437,7 @@
         const lineLabels = hRev.map(h => new Date(h.fechaRevision).toLocaleDateString('es-CO', { day:'numeric', month:'short' }));
         const lineValues = hRev.map(h => h.precio);
         const minP = Math.min(...lineValues), maxP = Math.max(...lineValues);
-        const lineColors = lineValues.map(v => v === minP ? 'rgba(74,222,128,1)' : v === maxP ? 'rgba(248,113,113,1)' : 'rgba(96,165,250,1)');
+        const lineColors = lineValues.map(v => v === minP ? '#16a34a' : v === maxP ? '#e11d48' : '#0d7b6e');
 
         for (let i = 0; i < historial.length; i++) {
             let h = historial[i];
@@ -476,8 +478,8 @@
               datasets: [{
                 label: 'Precio',
                 data: lineValues,
-                borderColor: 'rgba(96,165,250,1)',
-                backgroundColor: 'rgba(96,165,250,0.08)',
+                borderColor: '#0d7b6e',
+                backgroundColor: 'rgba(13,123,110,0.08)',
                 pointBackgroundColor: lineColors,
                 pointBorderColor: lineColors,
                 pointRadius: 5,
@@ -515,9 +517,9 @@
        try {
           let unreadCount = await getNotificacionesNoLeidasCount(getUsuarioId());
           // Podrías poner un badge rojo en el botón si unreadCount > 0
-          let btn = document.querySelector(".btn-historial");
+          let btn = document.getElementById("btnAlertas");
           if (unreadCount > 0) {
-              btn.innerHTML = `🔔 Alertas <span style="background:var(--red); color:white; padding: 2px 6px; border-radius: 10px; font-size: 10px; margin-left:4px;">${unreadCount}</span>`;
+              btn.innerHTML = `🔔 Alertas <span class="contador-alertas">${unreadCount}</span>`;
           } else {
               btn.innerHTML = `🔔 Ver Alertas`;
           }
@@ -527,7 +529,7 @@
     async function abrirPanelNotificaciones() {
       document.getElementById("panelNotificaciones").classList.add("open");
       let list = document.getElementById("notifList");
-      list.innerHTML = "<div style='padding: 20px; text-align: center;'>Cargando...</div>";
+      list.innerHTML = "<div class='sin-datos'>Cargando...</div>";
       
       try {
         let notifs = await getNotificaciones(getUsuarioId());
@@ -546,7 +548,7 @@
         `).join("");
 
       } catch (error) {
-        list.innerHTML = "<div style='padding: 20px; color: red;'>Error cargando notificaciones.</div>";
+        list.innerHTML = "<div class='error-msg' style='margin: 16px;'>Error cargando notificaciones.</div>";
       }
     }
 
@@ -582,8 +584,38 @@
   </script>
 
   <style>
-    .chart-card { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 14px; padding: 14px 14px 10px; }
-    .chart-card-title { margin: 0 0 10px; font-size: 11px; font-weight: 600; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 0.6px; }
+    .metas-toolbar { display: flex; align-items: center; gap: 14px; margin: 28px 0 14px; }
+    .metas-toolbar .seccion-titulo { flex: 1; margin: 0; }
+
+    .meta-item { flex-direction: column; align-items: stretch; gap: 12px; padding: 18px 20px; }
+    .meta-item:hover { background: transparent; }
+    .meta-header { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+    .meta-objetivo { font-size: 12.5px; font-weight: 400; color: var(--text-muted); }
+
+    .meta-ml { background: var(--bg-raised); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 12px; display: flex; gap: 14px; align-items: center; }
+    .meta-ml img { width: 48px; height: 48px; object-fit: contain; border-radius: var(--radius-sm); background: #fff; border: 1px solid var(--border); flex-shrink: 0; }
+    .meta-ml-acciones { display: flex; flex-direction: column; gap: 6px; }
+    .meta-ml-btn { font-size: 11.5px; font-weight: 500; color: var(--text-secondary); background: var(--bg-surface); border: 1px solid var(--border); padding: 5px 10px; border-radius: var(--radius-sm); cursor: pointer; text-align: center; white-space: nowrap; }
+    .meta-ml-btn:hover { border-color: var(--accent-mid); color: var(--accent-text); }
+    .meta-ml-btn.primario { color: #fff; background: var(--accent); border-color: var(--accent); }
+    .meta-ml-btn.primario:hover { background: var(--accent-text); color: #fff; }
+
+    .meta-vincular { display: flex; gap: 8px; flex-wrap: wrap; }
+    .meta-vincular-btn { flex: 1 1 200px; font-size: 12.5px; font-weight: 500; color: var(--text-secondary); background: transparent; border: 1px solid var(--border); padding: 8px 12px; border-radius: var(--radius-sm); cursor: pointer; transition: all 0.15s; }
+    .meta-vincular-btn:hover { border-color: var(--accent-mid); color: var(--accent-text); }
+    .meta-vincular-btn.principal { flex-grow: 3; color: var(--accent-text); background: var(--accent-light); border: 1px dashed var(--accent-mid); }
+    .meta-vincular-btn.principal:hover { background: #d4efeb; }
+
+    .contador-alertas { background: var(--red); color: #fff; padding: 1px 7px; border-radius: 10px; font-size: 10.5px; }
+
+    @media (max-width: 560px) {
+      .meta-item { padding: 14px; }
+      .meta-header { flex-wrap: wrap; }
+      .meta-header .mov-derecha { margin-left: auto; }
+      .meta-ml { flex-wrap: wrap; }
+      .meta-ml-acciones { flex-direction: row; width: 100%; }
+      .meta-ml-acciones > * { flex: 1; }
+    }
   </style>
 
 </body>

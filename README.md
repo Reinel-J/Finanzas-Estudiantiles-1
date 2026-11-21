@@ -61,6 +61,34 @@ Antes de ejecutar el proyecto, asegúrate de tener instalado:
 
 ---
 
+## 🐳 Ejecutar con Docker (recomendado)
+
+Con Docker no necesitas instalar Java, Maven ni MySQL. Un solo comando levanta los tres servicios:
+
+```bash
+docker compose up -d --build
+```
+
+| Servicio   | URL / Puerto                       | Imagen                         |
+|------------|------------------------------------|--------------------------------|
+| Frontend   | http://localhost:8080              | `nginx:1.27-alpine`            |
+| Backend    | http://localhost:8081/api          | build de `finanzas-backend/…`  |
+| MySQL      | `localhost:3307` (root / 1234)     | `mysql:8.4`                    |
+
+*   La base de datos se crea automáticamente con `schema.sql` la **primera vez** (cuando el volumen está vacío). Los datos persisten en el volumen `db_data`.
+*   Para cambiar puertos o contraseñas, copia `.env.example` a `.env` y edítalo. Si cambias `BACKEND_PORT`, actualiza también `API_BASE` en `frontend/js/api.js`.
+
+Comandos útiles:
+
+```bash
+docker compose logs -f backend   # ver logs del backend
+docker compose down              # detener (conserva los datos)
+docker compose down -v           # detener y BORRAR la base de datos
+docker compose up -d --build backend   # reconstruir solo el backend tras cambios
+```
+
+---
+
 ## ⚙️ Configuración e Instalación
 
 ### 1. Configuración de la Base de Datos

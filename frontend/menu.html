@@ -5,6 +5,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Inicio — FinanzasApp</title>
+  <link rel="icon" href="data:,">
   <link rel="stylesheet" href="css/estilos.css">
 </head>
 
@@ -44,15 +45,15 @@
 
     <!-- Botones de gestión de semestre -->
     <div class="semestre-actions" id="semestreActions">
-      <button class="btn-finalizar" onclick="confirmarFinalizarSemestre()">Finalizar Semestre</button>
-      <button class="btn-historial" onclick="toggleHistorial()">Ver Historial</button>
+      <button class="btn-peligro" onclick="confirmarFinalizarSemestre()">Finalizar Semestre</button>
+      <button class="btn-secundario" onclick="toggleHistorial()">Ver Historial</button>
     </div>
 
     <!-- Panel de historial de semestres -->
     <div id="panelHistorial" class="panel-historial" style="display: none;">
       <div class="panel-header">
         <h3>Historial de Semestres</h3>
-        <button class="btn-cerrar-panel" onclick="toggleHistorial()">✕</button>
+        <button class="modal-close" onclick="toggleHistorial()" title="Cerrar">×</button>
       </div>
       <div id="listaHistorial" class="lista-historial">
         <p class="sin-datos">No hay semestres finalizados aún.</p>
@@ -60,7 +61,7 @@
     </div>
 
     <!-- Alerta de gasto semanal -->
-    <div id="alertaSemanal" class="alerta-semanal" style="display: none; margin-bottom: 28px;">
+    <div id="alertaSemanal" class="alerta-semanal" style="display: none;">
       <div class="alerta-icono">📊</div>
       <div class="alerta-texto">
         <strong>Esta semana gastaste:</strong>
@@ -85,14 +86,14 @@
     </div>
 
     <!-- Tarjeta de ahorro -->
-    <div class="tarjetas" style="margin-top: 0;">
-      <div class="tarjeta" style="background: rgba(74, 222, 128, 0.08); border-color: rgba(74, 222, 128, 0.2);">
+    <div class="tarjetas" style="margin-top: 14px;">
+      <div class="tarjeta ahorro-card">
         <div class="tarjeta-label">Ahorro acumulado</div>
-        <p class="tarjeta-valor" style="color: #4ade80;" id="ahorroAcumulado">$0</p>
+        <p class="tarjeta-valor" id="ahorroAcumulado">$0</p>
       </div>
     </div>
 
-    <p class="seccion-titulo" style="margin-top: 28px;">Distribución Financiera</p>
+    <p class="seccion-titulo">Distribución Financiera</p>
     <div class="charts-grid">
       <div class="chart-card">
         <p class="chart-card-title">Ingresos · Gastos · Ahorro</p>
@@ -121,9 +122,9 @@
     }
 
     let _donutChart = null, _barChart = null;
-    const _gc = 'rgba(255,255,255,0.06)', _tc = 'rgba(255,255,255,0.45)';
+    const _gc = '#eef0f3', _tc = '#64748b';
     const _fmt = v => '$' + Number(v).toLocaleString('es-CO');
-    const _leg = { position: 'bottom', labels: { color: 'rgba(255,255,255,0.6)', font: { size: 11 }, padding: 12, boxWidth: 12 } };
+    const _leg = { position: 'bottom', labels: { color: '#475569', font: { size: 11 }, padding: 12, boxWidth: 12 } };
 
     function renderCharts(ingresos, gastos, ahorro) {
       const libre = Math.max(ingresos - gastos - ahorro, 0);
@@ -137,8 +138,8 @@
         data: {
           labels: ['Gastos', 'Ahorro', 'Saldo libre'],
           datasets: [{ data: [gastos, ahorro, libre],
-            backgroundColor: ['rgba(248,113,113,0.85)', 'rgba(74,222,128,0.85)', 'rgba(96,165,250,0.85)'],
-            borderColor: ['rgba(248,113,113,1)', 'rgba(74,222,128,1)', 'rgba(96,165,250,1)'],
+            backgroundColor: ['#e11d48', '#16a34a', '#0d7b6e'],
+            borderColor: '#ffffff',
             borderWidth: 2, hoverOffset: 8 }]
         },
         options: { responsive: true, maintainAspectRatio: false, cutout: '65%',
@@ -154,15 +155,15 @@
         data: {
           labels: ['Período Actual'],
           datasets: [
-            { label: 'Ingresos', data: [ingresos], backgroundColor: 'rgba(74,222,128,0.7)', borderColor: 'rgba(74,222,128,1)', borderWidth: 2, borderRadius: 8 },
-            { label: 'Gastos',   data: [gastos],   backgroundColor: 'rgba(248,113,113,0.7)', borderColor: 'rgba(248,113,113,1)', borderWidth: 2, borderRadius: 8 },
-            { label: 'Ahorro',   data: [ahorro],   backgroundColor: 'rgba(251,191,36,0.7)',  borderColor: 'rgba(251,191,36,1)',  borderWidth: 2, borderRadius: 8 }
+            { label: 'Ingresos', data: [ingresos], backgroundColor: '#16a34a', borderRadius: 6 },
+            { label: 'Gastos',   data: [gastos],   backgroundColor: '#e11d48', borderRadius: 6 },
+            { label: 'Ahorro',   data: [ahorro],   backgroundColor: '#0d7b6e', borderRadius: 6 }
           ]
         },
         options: { responsive: true, maintainAspectRatio: false,
           plugins: { legend: _leg, tooltip: { callbacks: { label: ctx => ' ' + ctx.dataset.label + ': ' + _fmt(ctx.raw) } } },
           scales: {
-            x: { grid: { color: _gc }, ticks: { color: _tc } },
+            x: { grid: { display: false }, ticks: { color: _tc } },
             y: { grid: { color: _gc }, ticks: { color: _tc, callback: _fmt } }
           }
         }
@@ -299,12 +300,12 @@
         }
 
         lista.innerHTML = historial.map(h => `
-          <div class="historial-item">
-            <div class="historial-header">
+          <div class="sem-hist-item">
+            <div class="sem-hist-header">
               <h4>Semestre ${h.semestreNumero}</h4>
-              <span class="historial-fechas">${h.fechaInicio} → ${h.fechaFin}</span>
+              <span class="sem-hist-fechas">${h.fechaInicio} → ${h.fechaFin}</span>
             </div>
-            <div class="historial-stats">
+            <div class="sem-hist-stats">
               <div class="stat">
                 <span class="stat-label">Ingresos</span>
                 <span class="stat-value ingreso">${formatCOP(h.totalIngresos)}</span>
@@ -322,7 +323,7 @@
                 <span class="stat-value ahorro">${formatCOP(h.montoAhorradoFinal)}</span>
               </div>
             </div>
-            <div class="historial-detalle">
+            <div class="sem-hist-detalle">
               ${h.cantidadIngresos} ingresos · ${h.cantidadGastos} gastos
             </div>
           </div>
@@ -336,183 +337,37 @@
   </script>
 
   <style>
-    .charts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 28px; }
-    @media (max-width: 700px) { .charts-grid { grid-template-columns: 1fr; } }
-    .chart-card { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; padding: 18px 16px 12px; }
-    .chart-card-title { margin: 0 0 12px; font-size: 12px; font-weight: 600; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 0.6px; }
-
-    .alerta-semanal {
-      background: rgba(251, 191, 36, 0.1);
-      border: 1px solid rgba(251, 191, 36, 0.3);
-      border-radius: 12px;
-      padding: 16px 20px;
-      display: flex;
-      align-items: center;
-      gap: 14px;
-    }
-
-    .alerta-icono {
-      font-size: 24px;
-    }
-
-    .alerta-texto {
-      font-size: 14px;
-      color: #fbbf24;
-    }
-
-    .alerta-texto strong {
-      color: rgba(255, 255, 255, 0.8);
-    }
-
-    .alerta-texto span {
-      font-weight: 700;
-      font-size: 16px;
-    }
-
-    .semestre-actions {
-      display: flex;
-      gap: 12px;
-      margin-bottom: 24px;
-    }
-
-    .btn-finalizar {
-      padding: 10px 20px;
-      border: none;
-      border-radius: 8px;
-      background: linear-gradient(135deg, #ef4444, #dc2626);
-      color: white;
-      font-weight: 600;
-      font-size: 13px;
-      cursor: pointer;
-      transition: opacity 0.2s, transform 0.2s;
-    }
-
-    .btn-finalizar:hover {
-      opacity: 0.9;
-      transform: translateY(-1px);
-    }
-
-    .btn-historial {
-      padding: 10px 20px;
-      border: 1px solid rgba(147, 51, 234, 0.4);
-      border-radius: 8px;
-      background: rgba(147, 51, 234, 0.1);
-      color: #a78bfa;
-      font-weight: 600;
-      font-size: 13px;
-      cursor: pointer;
-      transition: background 0.2s;
-    }
-
-    .btn-historial:hover {
-      background: rgba(147, 51, 234, 0.2);
-    }
+    .semestre-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 24px; }
 
     .panel-historial {
-      background: rgba(15, 10, 30, 0.95);
-      border: 1px solid rgba(147, 51, 234, 0.3);
-      border-radius: 16px;
-      padding: 24px;
-      margin-bottom: 28px;
-      backdrop-filter: blur(10px);
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-sm);
+      padding: 20px 22px;
+      margin-bottom: 24px;
     }
+    .panel-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+    .panel-header h3 { font-family: var(--font-display); font-size: 18px; font-weight: 600; color: var(--text-primary); }
 
-    .panel-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 20px;
-    }
+    .lista-historial { display: flex; flex-direction: column; gap: 12px; max-height: 420px; overflow-y: auto; }
+    .lista-historial .sin-datos { padding: 24px 12px; }
 
-    .panel-header h3 {
-      margin: 0;
-      font-size: 18px;
-      color: #fff;
-    }
+    .sem-hist-item { background: var(--bg-raised); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 16px; }
+    .sem-hist-header { display: flex; flex-wrap: wrap; gap: 6px; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+    .sem-hist-header h4 { font-size: 15px; font-weight: 600; color: var(--accent-text); }
+    .sem-hist-fechas { font-size: 12px; color: var(--text-muted); font-family: var(--font-mono); }
+    .sem-hist-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 10px; }
+    .sem-hist-detalle { font-size: 12px; color: var(--text-muted); text-align: center; }
 
-    .btn-cerrar-panel {
-      background: none;
-      border: none;
-      color: rgba(255,255,255,0.5);
-      font-size: 20px;
-      cursor: pointer;
-      padding: 4px 8px;
-    }
+    .stat { text-align: center; }
+    .stat-label { display: block; font-size: 10.5px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+    .stat-value { display: block; font-size: 14px; font-weight: 500; font-family: var(--font-mono); }
+    .stat-value.ingreso, .stat-value.positivo { color: var(--green); }
+    .stat-value.gasto, .stat-value.negativo { color: var(--red); }
+    .stat-value.ahorro { color: var(--accent); }
 
-    .btn-cerrar-panel:hover {
-      color: #fff;
-    }
-
-    .lista-historial {
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-      max-height: 400px;
-      overflow-y: auto;
-    }
-
-    .historial-item {
-      background: rgba(255,255,255,0.05);
-      border: 1px solid rgba(255,255,255,0.1);
-      border-radius: 12px;
-      padding: 16px;
-    }
-
-    .historial-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 12px;
-    }
-
-    .historial-header h4 {
-      margin: 0;
-      font-size: 16px;
-      color: #a78bfa;
-    }
-
-    .historial-fechas {
-      font-size: 12px;
-      color: rgba(255,255,255,0.4);
-    }
-
-    .historial-stats {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 12px;
-      margin-bottom: 12px;
-    }
-
-    .stat {
-      text-align: center;
-    }
-
-    .stat-label {
-      display: block;
-      font-size: 11px;
-      color: rgba(255,255,255,0.4);
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      margin-bottom: 4px;
-    }
-
-    .stat-value {
-      display: block;
-      font-size: 15px;
-      font-weight: 700;
-    }
-
-    .stat-value.ingreso { color: #4ade80; }
-    .stat-value.gasto { color: #f87171; }
-    .stat-value.positivo { color: #4ade80; }
-    .stat-value.negativo { color: #f87171; }
-    .stat-value.ahorro { color: #fbbf24; }
-
-    .historial-detalle {
-      font-size: 12px;
-      color: rgba(255,255,255,0.35);
-      text-align: center;
-    }
+    @media (max-width: 560px) { .sem-hist-stats { grid-template-columns: repeat(2, 1fr); } }
   </style>
 
 </body>

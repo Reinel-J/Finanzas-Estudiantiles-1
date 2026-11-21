@@ -1,0 +1,61 @@
+# ============================================================
+#  FinanzasApp — Docker Compose
+#  Levantar todo:   docker compose up -d --build
+#  Ver logs:        docker compose logs -f backend
+#  Detener:         docker compose down      (agrega -v para borrar la BD)
+# ============================================================
+
+services:
+  db:
+    image: mysql:8.4
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD:-1234}
+      MYSQL_DATABASE: finanzas_estudiantiles
+      TZ: UTC
+    ports:
+      - "${DB_PORT:-3307}:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+      # Se ejecuta solo la primera vez (cuando el volumen está vacío)
+      - ./finanzas-backend/finanzas-backend/src/main/resources/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p$$MYSQL_ROOT_PASSWORD --silent"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 20s
+
+  backend:
+    build: ./finanzas-backend/finanzas-backend
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      # Sobrescriben los valores de application.properties
+      SPRING_DATASOURCE_URL: jdbc:mysql://db:3306/finanzas_estudiantiles?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD:-1234}
+      SPRING_JPA_SHOW_SQL: ${SHOW_SQL:-false}
+      # Zona horaria para LocalDate.now(): sin esto el contenedor usa UTC y después
+      # de las 7 p.m. en Colombia el "hoy" del backend ya es el día siguiente.
+      TZ: ${TZ:-America/Bogota}
+      MONEDA_API_KEY: ${MONEDA_API_KEY:-}
+      # Secretos: se toman del archivo .env (ignorado por git), nunca del repositorio
+      ML_OAUTH_CLIENT_ID: ${ML_OAUTH_CLIENT_ID:-}
+      ML_OAUTH_CLIENT_SECRET: ${ML_OAUTH_CLIENT_SECRET:-}
+      ML_OAUTH_REDIRECT_URI: ${ML_OAUTH_REDIRECT_URI:-}
+    ports:
+      - "${BACKEND_PORT:-8081}:8081"
+
+  frontend:
+    build: ./frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "${FRONTEND_PORT:-8080}:80"
+
+volumes:
+  db_data:

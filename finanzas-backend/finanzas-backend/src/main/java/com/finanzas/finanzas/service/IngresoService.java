@@ -1,7 +1,9 @@
 package com.finanzas.finanzas.service;
 
+import com.finanzas.finanzas.model.Gasto;
 import com.finanzas.finanzas.model.Ingreso;
 import com.finanzas.finanzas.model.Usuario;
+import com.finanzas.finanzas.repository.GastoRepository;
 import com.finanzas.finanzas.repository.IngresoRepository;
 import com.finanzas.finanzas.repository.UsuarioRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,11 +25,29 @@ public class IngresoService {
     @Autowired
     private GastoService gastoService;
 
+    @Autowired
+    private GastoRepository gastoRepository;
+
+    /** Prefijo de la descripción de los gastos que crea el ahorro automático */
+    static final String PREFIJO_AHORRO_AUTO = "Ahorro automático";
+
+    private static void validar(Ingreso ingreso) {
+        if (ingreso.getMonto() == null || ingreso.getMonto() <= 0) {
+            throw new IllegalArgumentException("El monto del ingreso debe ser mayor a 0.");
+        }
+        if (ingreso.getFecha() == null) {
+            throw new IllegalArgumentException("La fecha del ingreso es obligatoria (YYYY-MM-DD).");
+        }
+    }
+
     // ── Agregar ingreso (asigna semestre automático) ───────────
     @Transactional
     public Ingreso agregar(Long usuarioId, Ingreso ingreso) {
         Usuario usuario = usuarioRepository.findById(usuarioId)
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado."));
+        validar(ingreso);
+        // Ignorar un id enviado por el cliente: si no, save() sobrescribiría otro ingreso
+        ingreso.setId(null);
 
         // Asigna semestre del usuario si no se envió
         if (ingreso.getSemestre() == null) {
@@ -50,10 +70,12 @@ public class IngresoService {
             // CREAR UN GASTO EXPLÍCITO POR EL AHORRO AUTOMÁTICO
             // Esto asegura que el dinero se descuente del saldo y quede reflejado en el
             // historial.
-            com.finanzas.finanzas.model.Gasto ahorroGasto = new com.finanzas.finanzas.model.Gasto();
+            Gasto ahorroGasto = new Gasto();
             ahorroGasto.setMonto(montoAhorro);
-            ahorroGasto.setDescripcion("Ahorro automático (" + usuario.getPorcentajeAhorro() + "%) de: "
+            ahorroGasto.setDescripcion(PREFIJO_AHORRO_AUTO + " (" + usuario.getPorcentajeAhorro() + "%) de: "
                     + ingresoGuardado.getDescripcion());
+            // Se vincula al ingreso para poder revertirlo si el ingreso se elimina
+            ahorroGasto.setIngreso(ingresoGuardado);
             ahorroGasto.setFecha(ingresoGuardado.getFecha());
             ahorroGasto.setCategoria("Ahorro");
             gastoService.registrarSimple(usuarioId, ahorroGasto);
@@ -108,19 +130,43 @@ public class IngresoService {
     public Ingreso editar(Long id, Ingreso datosNuevos) {
         Ingreso ingreso = ingresoRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Ingreso no encontrado."));
+        validar(datosNuevos);
         ingreso.setMonto(datosNuevos.getMonto());
         ingreso.setDescripcion(datosNuevos.getDescripcion());
         ingreso.setFecha(datosNuevos.getFecha());
         ingreso.setCategoria(datosNuevos.getCategoria());
-        ingreso.setSemestre(datosNuevos.getSemestre());
+        if (datosNuevos.getSemestre() != null) {
+            ingreso.setSemestre(datosNuevos.getSemestre());
+        }
         return ingresoRepository.save(ingreso);
     }
 
     // ── Eliminar ingreso ───────────────────────────────────────
+    // Revierte el ahorro automático generado por el ingreso. Antes, al borrar un
+    // ingreso quedaban el gasto "Ahorro automático" y el monto ahorrado, de modo que
+    // el saldo y el ahorro mostraban dinero que ya no existía.
+    @Transactional
     public void eliminar(Long id) {
-        if (!ingresoRepository.existsById(id)) {
-            throw new RuntimeException("Ingreso no encontrado.");
+        Ingreso ingreso = ingresoRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Ingreso no encontrado."));
+
+        double ahorroRevertido = 0.0;
+        for (Gasto g : gastoRepository.findByIngreso(ingreso)) {
+            boolean esAhorroAuto = g.getDescripcion() != null && g.getDescripcion().startsWith(PREFIJO_AHORRO_AUTO);
+            if (esAhorroAuto) {
+                ahorroRevertido += g.getMonto();
+                gastoRepository.delete(g);
+            } else {
+                // Gasto normal asociado: se conserva pero se desvincula (evita error de FK)
+                g.setIngreso(null);
+                gastoRepository.save(g);
+            }
         }
-        ingresoRepository.deleteById(id);
+        if (ahorroRevertido > 0) {
+            Usuario usuario = ingreso.getUsuario();
+            usuario.setMontoAhorrado(Math.max(0.0, usuario.getMontoAhorrado() - ahorroRevertido));
+            usuarioRepository.save(usuario);
+        }
+        ingresoRepository.delete(ingreso);
     }
 }

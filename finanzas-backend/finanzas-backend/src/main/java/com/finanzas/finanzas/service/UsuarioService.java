@@ -34,29 +34,43 @@ public class UsuarioService {
 
     // ── Registro ──────────────────────────────────────────────
     public Usuario registrar(Usuario usuario) {
+        if (vacio(usuario.getNombre()) || vacio(usuario.getApellido()) || vacio(usuario.getContrasena())
+                || vacio(usuario.getTipoDoc()) || vacio(usuario.getNDoc()) || vacio(usuario.getUniversidad())) {
+            throw new IllegalArgumentException("Todos los campos del registro son obligatorios.");
+        }
+        // SEGURIDAD: ignorar cualquier id enviado por el cliente. Antes, un registro
+        // con "id": 1 hacía que save() sobrescribiera al usuario 1 (nombre y contraseña),
+        // permitiendo secuestrar cualquier cuenta.
+        usuario.setId(null);
+        usuario.setNombre(usuario.getNombre().trim());
         if (usuarioRepository.existsByNombre(usuario.getNombre())) {
             throw new RuntimeException("El nombre de usuario ya existe.");
         }
         if (usuarioRepository.existsBynDoc(usuario.getNDoc())) {
             throw new RuntimeException("El número de documento ya está registrado.");
         }
-        // Valores por defecto para semestre y ahorro
-        if (usuario.getSemestreActual() == null) {
-            usuario.setSemestreActual(1);
-        }
-        if (usuario.getPorcentajeAhorro() == null) {
-            usuario.setPorcentajeAhorro(10.0);
-        }
-        if (usuario.getMontoAhorrado() == null) {
-            usuario.setMontoAhorrado(0.0);
-        }
+        // Valores iniciales: el cliente no puede auto-asignarse ahorro ni fechas.
+        // (Los getters de Usuario nunca devuelven null, por eso no se comparaba bien antes.)
+        usuario.setSemestreActual(1);
+        usuario.setFechaInicioSemestre(null);
+        usuario.setFechaFinSemestre(null);
+        double porcentaje = usuario.getPorcentajeAhorro();
+        usuario.setPorcentajeAhorro(porcentaje >= 0 && porcentaje <= 100 ? porcentaje : 10.0);
+        usuario.setMontoAhorrado(0.0);
         return usuarioRepository.save(usuario);
+    }
+
+    private static boolean vacio(String s) {
+        return s == null || s.isBlank();
     }
 
     // ── Login ─────────────────────────────────────────────────
     public Optional<Usuario> login(String nombre, String contrasena) {
-        return usuarioRepository.findByNombre(nombre)
-                .filter(u -> u.getContrasena().equals(contrasena));
+        if (nombre == null || contrasena == null) {
+            return Optional.empty();
+        }
+        return usuarioRepository.findByNombre(nombre.trim())
+                .filter(u -> contrasena.equals(u.getContrasena()));
     }
 
     // ── Buscar por ID ─────────────────────────────────────────
@@ -106,8 +120,15 @@ public class UsuarioService {
                 throw new RuntimeException("Formato de fecha fin inválido. Use YYYY-MM-DD.");
             }
         }
-        if (porcentajeAhorro != null && porcentajeAhorro >= 0 && porcentajeAhorro <= 100) {
+        if (porcentajeAhorro != null) {
+            if (porcentajeAhorro < 0 || porcentajeAhorro > 100) {
+                throw new IllegalArgumentException("El porcentaje de ahorro debe estar entre 0 y 100.");
+            }
             usuario.setPorcentajeAhorro(porcentajeAhorro);
+        }
+        if (usuario.getFechaInicioSemestre() != null && usuario.getFechaFinSemestre() != null
+                && !usuario.getFechaFinSemestre().isAfter(usuario.getFechaInicioSemestre())) {
+            throw new IllegalArgumentException("La fecha de fin del semestre debe ser posterior a la de inicio.");
         }
 
         return usuarioRepository.save(usuario);
@@ -115,6 +136,9 @@ public class UsuarioService {
 
     // ── Agregar ahorro ────────────────────────────────────────
     public Usuario agregarAhorro(Long id, Double monto) {
+        if (monto == null || monto <= 0) {
+            throw new IllegalArgumentException("Monto inválido.");
+        }
         Usuario usuario = usuarioRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado."));
         double nuevo = usuario.getMontoAhorrado() + monto;
@@ -165,11 +189,14 @@ public class UsuarioService {
         Long cantidadIngresos = ingresoRepository.findByUsuarioAndSemestreOrderByFechaDesc(usuario, semestreActual).stream().count();
         Long cantidadGastos = gastoRepository.findByUsuarioAndSemestreOrderByFechaDesc(usuario, semestreActual).stream().count();
 
-        List<Object[]> gastosPorCategoriaRaw = gastoRepository.sumGastosPorCategoria(usuario);
+        // Solo los gastos de ESTE semestre (antes sumaba todos los semestres del usuario)
+        List<Object[]> gastosPorCategoriaRaw = gastoRepository.sumGastosPorCategoriaYSemestre(usuario, semestreActual);
         Map<String, Double> gastosPorCategoria = gastosPorCategoriaRaw.stream()
                 .collect(Collectors.toMap(
                         fila -> fila[0] != null ? fila[0].toString() : "Sin categoría",
-                        fila -> ((Number) fila[1]).doubleValue()
+                        fila -> ((Number) fila[1]).doubleValue(),
+                        Double::sum,
+                        java.util.LinkedHashMap::new
                 ));
 
         HistorialSemestre historial = new HistorialSemestre();
@@ -183,11 +210,12 @@ public class UsuarioService {
         historial.setMontoAhorradoFinal(montoAhorradoFinal);
         historial.setCantidadIngresos(cantidadIngresos.intValue());
         historial.setCantidadGastos(cantidadGastos.intValue());
-        historial.setGastosPorCategoria(gastosPorCategoria.toString());
+        historial.setGastosPorCategoria(aJson(gastosPorCategoria));
         historialSemestreRepository.save(historial);
 
-        ingresoRepository.deleteAll(ingresoRepository.findByUsuarioAndSemestreOrderByFechaDesc(usuario, semestreActual));
+        // Borrar primero los gastos: pueden referenciar ingresos (FK gastos.ingreso_id)
         gastoRepository.deleteAll(gastoRepository.findByUsuarioAndSemestreOrderByFechaDesc(usuario, semestreActual));
+        ingresoRepository.deleteAll(ingresoRepository.findByUsuarioAndSemestreOrderByFechaDesc(usuario, semestreActual));
 
         String mensajeAvance = "";
         if (asignaturasPerdidas > 3) {
@@ -213,6 +241,14 @@ public class UsuarioService {
                 "montoAhorradoFinal", montoAhorradoFinal,
                 "gastosPorCategoria", gastosPorCategoria
         );
+    }
+
+    private static String aJson(Map<String, Double> mapa) {
+        try {
+            return new com.fasterxml.jackson.databind.ObjectMapper().writeValueAsString(mapa);
+        } catch (com.fasterxml.jackson.core.JsonProcessingException e) {
+            return "{}";
+        }
     }
 
     // ── Obtener historial de semestres ────────────────────────

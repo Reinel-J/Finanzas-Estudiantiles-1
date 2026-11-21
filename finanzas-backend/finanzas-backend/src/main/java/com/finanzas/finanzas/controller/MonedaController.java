@@ -18,9 +18,12 @@ public class MonedaController {
     @PostMapping("/convertir")
     public ResponseEntity<?> convertir(@RequestBody Map<String, Object> datos) {
         try {
+            if (!(datos.get("monto") instanceof Number)) {
+                return ResponseEntity.badRequest().body(Map.of("error", "El monto debe ser un número."));
+            }
             double monto = ((Number) datos.get("monto")).doubleValue();
-            String monedaOrigen = (String) datos.get("monedaOrigen");
-            String monedaDestino = (String) datos.get("monedaDestino");
+            String monedaOrigen = datos.get("monedaOrigen") != null ? datos.get("monedaOrigen").toString() : null;
+            String monedaDestino = datos.get("monedaDestino") != null ? datos.get("monedaDestino").toString() : null;
 
             if (monto <= 0) {
                 return ResponseEntity.badRequest().body(Map.of("error", "El monto debe ser mayor a 0."));

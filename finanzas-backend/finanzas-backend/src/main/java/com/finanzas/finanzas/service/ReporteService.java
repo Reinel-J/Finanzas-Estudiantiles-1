@@ -22,6 +22,14 @@ public class ReporteService {
         Usuario usuario = usuarioRepository.findById(usuarioId)
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado con ID: " + usuarioId));
         
+        if (reporte.getTipo() == null || reporte.getTipo().isBlank()
+                || reporte.getFechaInicio() == null || reporte.getFechaFin() == null
+                || reporte.getTotalGastos() == null) {
+            throw new IllegalArgumentException("El reporte requiere tipo, fechaInicio, fechaFin y totalGastos.");
+        }
+        // Ignorar id/fecha enviados por el cliente: el id sobrescribiría otro reporte
+        reporte.setId(null);
+        reporte.setFechaGeneracion(null);
         reporte.setUsuario(usuario);
         return reporteRepository.save(reporte);
     }

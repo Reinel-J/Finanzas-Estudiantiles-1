@@ -9,6 +9,7 @@ import com.finanzas.finanzas.service.GastoService;
 import com.finanzas.finanzas.service.IngresoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -33,6 +34,14 @@ public class MetaAhorroService {
     public MetaAhorro crear(Long usuarioId, MetaAhorro meta) {
         Usuario usuario = usuarioRepository.findById(usuarioId)
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado."));
+        if (meta.getNombre() == null || meta.getNombre().isBlank()) {
+            throw new IllegalArgumentException("El nombre de la meta es obligatorio.");
+        }
+        if (meta.getMontoObjetivo() == null || meta.getMontoObjetivo() <= 0) {
+            throw new IllegalArgumentException("El monto objetivo debe ser mayor a 0.");
+        }
+        // Ignorar un id enviado por el cliente: si no, save() sobrescribiría otra meta
+        meta.setId(null);
         meta.setUsuario(usuario);
         meta.setMontoActual(0.0);
         meta.setEstado("EN_PROGRESO");
@@ -47,9 +56,26 @@ public class MetaAhorroService {
     }
 
     // ── Abonar a una meta ─────────────────────────────────────
+    @Transactional
     public MetaAhorro abonar(Long metaId, Double monto) {
+        if (monto == null || monto <= 0) {
+            throw new IllegalArgumentException("El monto a abonar debe ser mayor a 0.");
+        }
         MetaAhorro meta = metaAhorroRepository.findById(metaId)
                 .orElseThrow(() -> new RuntimeException("Meta no encontrada."));
+
+        if (!"EN_PROGRESO".equals(meta.getEstado())) {
+            throw new IllegalStateException("Solo se puede abonar a metas en progreso.");
+        }
+
+        // No cobrar más de lo que falta: antes, abonar de más registraba el gasto
+        // completo pero la meta se topaba en el objetivo y el excedente se perdía.
+        double actual = meta.getMontoActual() != null ? meta.getMontoActual() : 0.0;
+        double restante = meta.getMontoObjetivo() - actual;
+        if (restante <= 0) {
+            throw new IllegalStateException("La meta ya alcanzó su monto objetivo.");
+        }
+        monto = Math.min(monto, restante);
 
         Long usuarioId = meta.getUsuario().getId();
 
@@ -62,7 +88,8 @@ public class MetaAhorroService {
         Double saldoActual = totalI - totalG;
 
         if (monto > saldoActual) {
-            throw new RuntimeException("Saldo insuficiente. Tu saldo actual es de $" + saldoActual);
+            throw new IllegalStateException("Saldo insuficiente. Tu saldo actual es de $"
+                    + String.format(new java.util.Locale("es", "CO"), "%,.0f", Math.max(saldoActual, 0)));
         }
 
         // 2. Registrar el abono como un gasto para que se descuente del saldo
@@ -74,12 +101,11 @@ public class MetaAhorroService {
         gastoService.registrarSimple(usuarioId, abonoGasto);
 
         // 3. Actualizar el monto de la meta
-        double nuevoMonto = meta.getMontoActual() + monto;
+        double nuevoMonto = actual + monto;
         meta.setMontoActual(nuevoMonto);
 
-        // Si alcanzó o superó el objetivo → completada
+        // Si alcanzó el objetivo → completada
         if (nuevoMonto >= meta.getMontoObjetivo()) {
-            meta.setMontoActual(meta.getMontoObjetivo());
             meta.setEstado("COMPLETADA");
         }
         return metaAhorroRepository.save(meta);
@@ -87,7 +113,7 @@ public class MetaAhorroService {
 
     // ── Calcular porcentaje de progreso ───────────────────────
     public double calcularProgreso(MetaAhorro meta) {
-        if (meta.getMontoObjetivo() == 0)
+        if (meta.getMontoObjetivo() == null || meta.getMontoObjetivo() == 0 || meta.getMontoActual() == null)
             return 0;
         return (meta.getMontoActual() / meta.getMontoObjetivo()) * 100;
     }
@@ -96,6 +122,9 @@ public class MetaAhorroService {
     public MetaAhorro editar(Long id, MetaAhorro datosNuevos) {
         MetaAhorro meta = metaAhorroRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Meta no encontrada."));
+        if (datosNuevos.getMontoObjetivo() == null || datosNuevos.getMontoObjetivo() <= 0) {
+            throw new IllegalArgumentException("El monto objetivo debe ser mayor a 0.");
+        }
         meta.setNombre(datosNuevos.getNombre());
         meta.setMontoObjetivo(datosNuevos.getMontoObjetivo());
         meta.setFechaLimite(datosNuevos.getFechaLimite());
@@ -128,7 +157,7 @@ public class MetaAhorroService {
         org.springframework.web.client.RestTemplate restTemplate = new org.springframework.web.client.RestTemplate();
 
         for (MetaAhorro meta : metas) {
-            if (meta.getIdProductoExterno() != null && !meta.getIdProductoExterno().trim().isEmpty() && !meta.getEstado().equals("COMPLETADA")) {
+            if (meta.getIdProductoExterno() != null && !meta.getIdProductoExterno().trim().isEmpty() && !"COMPLETADA".equals(meta.getEstado())) {
                 try {
                     String url = "https://dummyjson.com/products/" + meta.getIdProductoExterno().trim();
                     @SuppressWarnings("unchecked")

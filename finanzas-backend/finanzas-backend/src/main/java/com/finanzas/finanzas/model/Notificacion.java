@@ -1,6 +1,7 @@
 package com.finanzas.finanzas.model;
 
 import jakarta.persistence.*;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
@@ -28,6 +29,7 @@ public class Notificacion {
     private Long id;
 
     /** Usuario destinatario de la notificación */
+    @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "usuario_id", nullable = false)
     private Usuario usuario;

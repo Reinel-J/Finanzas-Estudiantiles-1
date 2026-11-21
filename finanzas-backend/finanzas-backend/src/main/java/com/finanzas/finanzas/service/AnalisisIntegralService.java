@@ -34,6 +34,10 @@ public class AnalisisIntegralService {
         Usuario usuario = usuarioRepository.findById(usuarioId)
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado."));
 
+        if (fechaFin.isBefore(fechaInicio)) {
+            throw new IllegalArgumentException("fechaFin no puede ser anterior a fechaInicio.");
+        }
+
         List<Gasto> gastos = gastoRepository.findGastosSemanales(usuario, fechaInicio, fechaFin);
 
         int dias = (int) java.time.temporal.ChronoUnit.DAYS.between(fechaInicio, fechaFin);

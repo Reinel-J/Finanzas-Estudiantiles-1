@@ -1,6 +1,7 @@
 package com.finanzas.finanzas.repository;
 
 import com.finanzas.finanzas.model.Gasto;
+import com.finanzas.finanzas.model.Ingreso;
 import com.finanzas.finanzas.model.Usuario;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -27,6 +28,19 @@ public interface GastoRepository extends JpaRepository<Gasto, Long> {
     @Query("SELECT g.categoria, SUM(g.monto) FROM Gasto g " +
            "WHERE g.usuario = :usuario GROUP BY g.categoria")
     List<Object[]> sumGastosPorCategoria(@Param("usuario") Usuario usuario);
+
+    // Suma de gastos por categoría de un semestre concreto (cierre de semestre)
+    @Query("SELECT g.categoria, SUM(g.monto) FROM Gasto g " +
+           "WHERE g.usuario = :usuario AND g.semestre = :semestre GROUP BY g.categoria")
+    List<Object[]> sumGastosPorCategoriaYSemestre(@Param("usuario") Usuario usuario,
+                                                  @Param("semestre") Integer semestre);
+
+    // Gastos asociados a un ingreso concreto
+    List<Gasto> findByIngreso(Ingreso ingreso);
+
+    // Suma de lo ya gastado de un ingreso
+    @Query("SELECT COALESCE(SUM(g.monto), 0) FROM Gasto g WHERE g.ingreso = :ingreso")
+    Double sumMontoByIngreso(@Param("ingreso") Ingreso ingreso);
 
     // Gastos del mes actual
     @Query("SELECT g FROM Gasto g WHERE g.usuario = :usuario " +

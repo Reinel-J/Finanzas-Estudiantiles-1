@@ -1,0 +1,34 @@
+# ── Secretos y configuración local ─────────────────────────────
+# Variables de entorno (contraseñas, API keys). Solo se versiona la plantilla.
+.env
+.env.*
+!.env.example
+# Overrides locales de Spring con credenciales reales
+**/src/main/resources/application-local.properties
+**/src/main/resources/application-*.local.properties
+# Llaves y certificados
+*.pem
+*.key
+*.p12
+*.jks
+*.keystore
+# Configuración local de Claude Code
+.claude/settings.local.json
+
+# ── URLs temporales de túneles (localtunnel / ngrok) ───────────
+*_url.txt
+
+# ── Build y logs ───────────────────────────────────────────────
+target/
+*.log
+# Volcados de error de la JVM: incluyen usuario, rutas y variables de entorno
+hs_err_pid*
+replay_pid*
+
+# ── IDEs y sistema operativo ───────────────────────────────────
+.idea/workspace.xml
+.idea/shelf/
+*.iml
+.DS_Store
+Thumbs.db
+node_modules/

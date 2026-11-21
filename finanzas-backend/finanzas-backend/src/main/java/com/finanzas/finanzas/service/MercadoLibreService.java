@@ -32,12 +32,15 @@ public class MercadoLibreService {
         RuntimeException ultimoError = null;
 
         for (String site : ML_SITES_FALLBACK) {
-            String url = UriComponentsBuilder
+            // encode() + URI: la búsqueda se codifica una sola vez (antes un "&" en la
+            // búsqueda se interpretaba como otro parámetro)
+            java.net.URI url = UriComponentsBuilder
                     .fromHttpUrl(String.format(ML_SEARCH_API_TEMPLATE, site))
                     .queryParam("q", query)
                     .queryParam("limit", 10)
+                    .encode()
                     .build()
-                    .toUriString();
+                    .toUri();
             List<ProductoMLDTO> productos = new ArrayList<>();
 
             try {
@@ -81,6 +84,9 @@ public class MercadoLibreService {
     }
 
     public ProductoMLDTO obtenerProductoPorId(String id) {
+        if (id == null || !id.matches("[A-Za-z]{3}\\d+")) {
+            throw new IllegalArgumentException("ID de producto de Mercado Libre inválido: " + id);
+        }
         String url = "https://api.mercadolibre.com/items/" + id;
         try {
             ResponseEntity<String> response = restTemplate.exchange(
@@ -127,7 +133,8 @@ public class MercadoLibreService {
 
             // ML occasionally hides original_price. Check if available.
             Double originalPrice = null;
-            if (!item.path("original_price").isNull()) {
+            // hasNonNull: si el campo no existe, path() devolvía 0.0 como precio original
+            if (item.hasNonNull("original_price")) {
                 originalPrice = item.path("original_price").asDouble();
             }
 

@@ -3,6 +3,7 @@ package com.finanzas.finanzas.controller;
 import com.finanzas.finanzas.model.Gasto;
 import com.finanzas.finanzas.service.GastoService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -69,9 +70,9 @@ public class GastoController {
     @GetMapping("/{usuarioId}/semana")
     public ResponseEntity<List<Gasto>> listarSemanales(
             @PathVariable Long usuarioId,
-            @RequestParam(required = false) LocalDate fecha) {
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fecha) {
         LocalDate fechaFin = fecha != null ? fecha : LocalDate.now();
-        LocalDate fechaInicio = fechaFin.minusWeeks(1);
+        LocalDate fechaInicio = fechaFin.minusDays(6); // últimos 7 días incluyendo fechaFin
         return ResponseEntity.ok(gastoService.listarSemanales(usuarioId, fechaInicio, fechaFin));
     }
 
@@ -95,9 +96,9 @@ public class GastoController {
     @GetMapping("/{usuarioId}/total/semana")
     public ResponseEntity<Map<String, Double>> totalSemanales(
             @PathVariable Long usuarioId,
-            @RequestParam(required = false) LocalDate fecha) {
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fecha) {
         LocalDate fechaFin = fecha != null ? fecha : LocalDate.now();
-        LocalDate fechaInicio = fechaFin.minusWeeks(1);
+        LocalDate fechaInicio = fechaFin.minusDays(6); // últimos 7 días incluyendo fechaFin
         Double total = gastoService.totalSemanales(usuarioId, fechaInicio, fechaFin);
         return ResponseEntity.ok(Map.of("total", total));
     }
@@ -118,9 +119,9 @@ public class GastoController {
     @GetMapping("/{usuarioId}/semanal/categoria")
     public ResponseEntity<Map<String, Double>> gastosSemanalesPorCategoria(
             @PathVariable Long usuarioId,
-            @RequestParam(required = false) LocalDate fecha) {
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fecha) {
         LocalDate fechaFin = fecha != null ? fecha : LocalDate.now();
-        LocalDate fechaInicio = fechaFin.minusWeeks(1);
+        LocalDate fechaInicio = fechaFin.minusDays(6); // últimos 7 días incluyendo fechaFin
         return ResponseEntity.ok(gastoService.gastosSemanalesPorCategoria(usuarioId, fechaInicio, fechaFin));
     }
 

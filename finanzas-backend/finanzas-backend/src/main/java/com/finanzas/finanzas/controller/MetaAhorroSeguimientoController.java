@@ -80,6 +80,8 @@ public class MetaAhorroSeguimientoController {
             // Si ML bloquea la consulta (ej: 403), permitimos guardar vinculacion manual.
             try {
                 productoML = mercadoLibreService.obtenerProductoPorId(externalId);
+            } catch (IllegalArgumentException e) {
+                return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
             } catch (Exception e) {
                 detalleErrorConsulta = e.getMessage();
                 if (detalleErrorConsulta != null && detalleErrorConsulta.contains(" 403 ")) {
